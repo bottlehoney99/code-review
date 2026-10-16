@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>코드 채점실</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Nanum+Pen+Script&display=swap">
+<style id="css">
+/* 모눈종이 위 교사의 빨간 펜: 왼쪽 문제 목록, 오른쪽 문제·편집기·채점 결과 */
+:root {
+  --paper: #eef2f1;
+  --surface: #ffffff;
+  --code-bg: #fbfcfc;
+  --ink: #1c2631;
+  --muted: #5a6875;
+  --line: #d3dbde;
+  --grid: rgba(28, 38, 49, 0.045);
+  --btn: #1f3a52;
+  --btn-ink: #ffffff;
+  --pen: #cf2f27;
+  --ok: #1d7448;
+  --ok-bg: #e5f2ea;
+  --bad: #ad2a22;
+  --bad-bg: #f8e7e5;
+  --warn: #8a5a00;
+  --warn-bg: #f7eedb;
+  --hint-bg: #fff8e6;
+  --font-ui: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-code: "JetBrains Mono", "D2Coding", "IBM Plex Sans KR", "Malgun Gothic", monospace;
+  --font-pen: "Nanum Pen Script", "IBM Plex Sans KR", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171c; --surface: #1a2128; --code-bg: #0f1418; --ink: #e4e9ed; --muted: #95a3af;
+    --line: #2b353f; --grid: rgba(228, 233, 237, 0.035); --btn: #d9e4ec; --btn-ink: #12171c;
+    --pen: #ff6d60; --ok: #63c991; --ok-bg: #173126; --bad: #ff8278; --bad-bg: #3a1d1b;
+    --warn: #e8b85c; --warn-bg: #33291a; --hint-bg: #2a2619; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171c; --surface: #1a2128; --code-bg: #0f1418; --ink: #e4e9ed; --muted: #95a3af;
+  --line: #2b353f; --grid: rgba(228, 233, 237, 0.035); --btn: #d9e4ec; --btn-ink: #12171c;
+  --pen: #ff6d60; --ok: #63c991; --ok-bg: #173126; --bad: #ff8278; --bad-bg: #3a1d1b;
+  --warn: #e8b85c; --warn-bg: #33291a; --hint-bg: #2a2619; color-scheme: dark;
+}
+html { font-size: 15px; }
+body {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  line-height: 1.6;
+  padding-inline: 16px;
+  padding-block: 0 48px;
+}
+* { box-sizing: border-box; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+
+.top {
+  max-width: 1180px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-block: 18px 14px; border-bottom: 2px solid var(--ink);
+}
+.brand { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.01em; margin-right: auto; }
+.brand small { font-weight: 400; color: var(--muted); font-size: 0.85rem; margin-left: 8px; }
+.modes { display: flex; border: 1px solid var(--ink); }
+.modes button { background: transparent; border: 0; padding: 6px 14px; cursor: pointer; }
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; padding-top: 22px; }
+aside h3 { font-size: 0.75rem; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; font-weight: 500; }
+.plist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.plist button {
+  width: 100%; text-align: left; background: transparent; border: 0; border-left: 3px solid transparent;
+  padding: 8px 10px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; line-height: 1.35;
+}
+.plist button:hover { background: var(--surface); }
+.plist button[aria-current="true"] { border-left-color: var(--pen); background: var(--surface); font-weight: 500; }
+.plist .num { font-family: var(--font-code); font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.plist .done { margin-left: auto; color: var(--pen); font-family: var(--font-pen); font-size: 1.15rem; line-height: 1; }
+.addbtn { margin-top: 10px; width: 100%; }
+
+main { min-width: 0; }
+.ptitle { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 0 6px; }
+.ptitle h2 { margin: 0; font-size: 1.6rem; letter-spacing: -0.02em; text-wrap: balance; }
+.tag { font-size: 0.78rem; border: 1px solid var(--line); background: var(--surface); padding: 1px 8px; color: var(--muted); }
+.tag code { font-family: var(--font-code); color: var(--ink); }
+.desc { max-width: 68ch; white-space: pre-wrap; margin: 10px 0 18px; }
+.desc code, .note code { font-family: var(--font-code); font-size: 0.9em; background: var(--surface); border: 1px solid var(--line); padding: 0 4px; }
+
+.examples { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 22px; }
+.ex { background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+.ex .exh { font-size: 0.75rem; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--line); letter-spacing: 0.04em; }
+.ex .exb { display: grid; grid-template-columns: 1fr 1fr; }
+.ex .exb > div { padding: 8px 10px; min-width: 0; }
+.ex .exb > div + div { border-left: 1px dashed var(--line); }
+.lbl { font-size: 0.72rem; color: var(--muted); display: block; margin-bottom: 2px; }
+pre.v { margin: 0; font-family: var(--font-code); font-size: 0.86rem; white-space: pre-wrap; word-break: break-all; }
+
+.editor { display: grid; grid-template-columns: auto minmax(0, 1fr); border: 1px solid var(--ink); background: var(--code-bg); }
+.gutter {
+  font-family: var(--font-code); font-size: 0.9rem; line-height: 1.55; color: var(--muted); text-align: right;
+  padding: 12px 8px 12px 12px; border-right: 1px solid var(--line); user-select: none; overflow: hidden; white-space: pre; font-variant-numeric: tabular-nums;
+}
+.editor textarea {
+  font-family: var(--font-code); font-size: 0.9rem; line-height: 1.55; border: 0; resize: vertical; background: transparent;
+  padding: 12px; min-height: 260px; width: 100%; tab-size: 4; white-space: pre; overflow: auto; outline: none;
+}
+.editor:focus-within { outline: 2px solid var(--pen); outline-offset: 1px; }
+.edhelp { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 14px 0 0; }
+.btn { border: 1px solid var(--ink); background: var(--surface); padding: 8px 16px; cursor: pointer; }
+.btn:hover { background: var(--paper); }
+.btn.primary { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); font-weight: 500; }
+.btn.primary:hover { filter: brightness(1.12); }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn:disabled { opacity: 0.5; cursor: progress; }
+.btn.small { padding: 4px 10px; font-size: 0.85rem; }
+.status { color: var(--muted); font-size: 0.9rem; }
+
+.runbox { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.runbox textarea, .field textarea, .field input, .field select {
+  width: 100%; border: 1px solid var(--line); background: var(--surface); padding: 8px 10px;
+}
+.runbox textarea, textarea.mono { font-family: var(--font-code); font-size: 0.86rem; }
+.runout { background: var(--surface); border: 1px solid var(--line); padding: 8px 10px; min-height: 84px; min-width: 0; }
+
+.score { display: flex; align-items: center; gap: 18px; margin: 28px 0 12px; flex-wrap: wrap; }
+.score .big { font-family: var(--font-pen); color: var(--pen); font-size: 3rem; line-height: 1; position: relative; padding: 4px 18px; }
+.score .big svg { position: absolute; inset: -6px -4px; width: calc(100% + 8px); height: calc(100% + 12px); overflow: visible; }
+.score .msg { font-size: 1rem; }
+.cases { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.case { border-bottom: 1px solid var(--line); }
+.case-row { display: grid; grid-template-columns: 34px 88px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 4px; }
+.case-row .cname { font-variant-numeric: tabular-nums; }
+.case-row .cname small { display: block; color: var(--muted); font-size: 0.72rem; line-height: 1.2; }
+.pill { font-size: 0.8rem; padding: 1px 8px; font-weight: 500; justify-self: start; }
+.pill.pass { background: var(--ok-bg); color: var(--ok); }
+.pill.wrong, .pill.err { background: var(--bad-bg); color: var(--bad); }
+.pill.tle { background: var(--warn-bg); color: var(--warn); }
+.cdetail { padding: 0 4px 12px 48px; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.cdetail > div { min-width: 0; }
+.cdetail .errmsg { grid-column: 1 / -1; font-family: var(--font-code); font-size: 0.84rem; color: var(--bad); white-space: pre-wrap; }
+mark.diff { background: var(--bad-bg); color: var(--bad); }
+.mark svg { display: block; width: 28px; height: 28px; }
+.mark .stroke { fill: none; stroke: var(--pen); stroke-width: 2.6; stroke-linecap: round; }
+
+.hint { margin-top: 18px; background: var(--hint-bg); border-left: 3px solid var(--pen); padding: 12px 14px; max-width: 72ch; white-space: pre-wrap; }
+.hint .lbl { margin-bottom: 6px; }
+
+.banner { max-width: 1180px; margin: 14px auto 0; padding: 10px 14px; background: var(--bad-bg); color: var(--bad); }
+.sample-tag { font-size: 0.72rem; color: var(--muted); border: 1px dashed var(--line); padding: 0 6px; }
+
+/* 문제 관리 */
+.form { display: grid; gap: 16px; max-width: 900px; }
+.field label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; }
+.field .sub { font-weight: 400; color: var(--muted); font-size: 0.78rem; }
+.row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 0.9rem; }
+.tests-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+table.tests { border-collapse: collapse; width: 100%; min-width: 620px; }
+table.tests th { text-align: left; font-size: 0.75rem; font-weight: 500; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); }
+table.tests td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.tests td textarea { width: 100%; min-height: 54px; border: 1px solid var(--line); background: var(--code-bg); padding: 4px 6px; font-family: var(--font-code); font-size: 0.84rem; resize: vertical; }
+table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); width: 32px; }
+.savebar {
+  position: sticky; bottom: 0; background: var(--surface); border-top: 2px solid var(--ink); padding: 10px 14px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px;
+}
+.note { font-size: 0.82rem; color: var(--muted); max-width: 72ch; }
+
+@media (max-width: 760px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  aside { overflow-x: auto; }
+  .plist { flex-direction: row; gap: 4px; }
+  .plist li { flex: 0 0 auto; }
+  .plist button { border-left: 0; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .plist button[aria-current="true"] { border-bottom-color: var(--pen); }
+  .case-row { grid-template-columns: 30px 70px minmax(0, 1fr); }
+  .case-row .tog { grid-column: 3; justify-self: start; }
+  .cdetail { padding-left: 4px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .score .big svg path { stroke-dasharray: 400; stroke-dashoffset: 400; animation: draw 0.6s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+}
+</style>
+<div id="app"></div>
+<script type="application/json" id="state">{"problems": [{"id": "p1", "title": "두 수의 합", "kind": "stdin", "funcName": "", "ignoreWs": false, "desc": "한 줄에 정수 두 개가 공백으로 구분되어 주어진다.\n두 수의 합을 출력하시오.\n\n입력을 받을 때 `input(\"숫자 입력: \")`처럼 안내 문구를 넣어도 채점에는 영향이 없다.", "starter": "", "tests": [{"input": "3 5", "expected": "8", "hidden": false}, {"input": "-2 7", "expected": "5", "hidden": false}, {"input": "1000000 2000000", "expected": "3000000", "hidden": true}, {"input": "0 0", "expected": "0", "hidden": true}]}, {"id": "p2", "title": "약수 출력", "kind": "stdin", "funcName": "", "ignoreWs": true, "desc": "자연수 n이 주어진다. n의 약수를 작은 것부터 공백으로 구분해 한 줄에 출력하시오.\n(1 ≤ n ≤ 10000)", "starter": "n = int(input())\n", "tests": [{"input": "6", "expected": "1 2 3 6", "hidden": false}, {"input": "1", "expected": "1", "hidden": true}, {"input": "13", "expected": "1 13", "hidden": true}, {"input": "36", "expected": "1 2 3 4 6 9 12 18 36", "hidden": true}]}, {"id": "p3", "title": "윤년 판별 함수", "kind": "function", "funcName": "is_leap", "ignoreWs": false, "desc": "연도 year를 받아 윤년이면 True, 아니면 False를 돌려주는 함수 `is_leap(year)`를 작성하시오.\n\n윤년 조건\n- 4로 나누어떨어지는 해는 윤년이다.\n- 그중 100으로 나누어떨어지는 해는 평년이다.\n- 그중 400으로 나누어떨어지는 해는 다시 윤년이다.\n\nprint로 출력하지 말고 return으로 돌려준다.", "starter": "def is_leap(year):\n    ", "tests": [{"input": "2024", "expected": "True", "hidden": false}, {"input": "2023", "expected": "False", "hidden": false}, {"input": "1900", "expected": "False", "hidden": true}, {"input": "2000", "expected": "True", "hidden": true}]}, {"id": "bubble", "title": "버블 정렬", "kind": "stdin", "funcName": "", "ignoreWs": false, "desc": "버블 정렬로 수열을 오름차순 정렬하시오.\n\n한 회차에서는 맨 앞부터 이웃한 두 수를 차례로 비교해, 앞의 수가 더 크면 서로 바꾼다. 회차가 끝나면 가장 큰 수가 맨 뒤로 가므로, 다음 회차는 마지막 칸을 빼고 진행한다.\n\n입력\n첫째 줄에 수의 개수 n이 주어진다. (2 ≤ n ≤ 100)\n둘째 줄에 정수 n개가 공백으로 구분되어 주어진다. 같은 수가 여러 번 나올 수도 있다.\n\n출력\n한 회차(바깥 반복 1번)가 끝날 때마다 리스트 전체를 공백으로 구분해 한 줄에 출력한다. 모두 n-1줄을 출력한다.\n이미 정렬이 끝났더라도 중간에 멈추지 말고 n-1회를 모두 진행한다.\n\n`sort()`나 `sorted()`를 쓰면 중간 과정이 달라져서 통과할 수 없다.", "starter": "n = int(input())\na = list(map(int, input().split()))\n\n", "tests": [{"input": "5\n5 3 8 1 2", "expected": "3 5 1 2 8\n3 1 2 5 8\n1 2 3 5 8\n1 2 3 5 8", "hidden": false}, {"input": "4\n4 1 3 2", "expected": "1 3 2 4\n1 2 3 4\n1 2 3 4", "hidden": false}, {"input": "2\n2 1", "expected": "1 2", "hidden": true}, {"input": "5\n1 2 3 4 5", "expected": "1 2 3 4 5\n1 2 3 4 5\n1 2 3 4 5\n1 2 3 4 5", "hidden": true}, {"input": "5\n9 7 5 3 1", "expected": "7 5 3 1 9\n5 3 1 7 9\n3 1 5 7 9\n1 3 5 7 9", "hidden": true}, {"input": "5\n3 1 3 2 1", "expected": "1 3 2 1 3\n1 2 1 3 3\n1 1 2 3 3\n1 1 2 3 3", "hidden": true}, {"input": "6\n-4 10 0 -7 3 10", "expected": "-4 0 -7 3 10 10\n-4 -7 0 3 10 10\n-7 -4 0 3 10 10\n-7 -4 0 3 10 10\n-7 -4 0 3 10 10", "hidden": true}, {"input": "10\n15 42 8 23 4 16 99 1 57 30", "expected": "15 8 23 4 16 42 1 57 30 99\n8 15 4 16 23 1 42 30 57 99\n8 4 15 16 1 23 30 42 57 99\n4 8 15 1 16 23 30 42 57 99\n4 8 1 15 16 23 30 42 57 99\n4 1 8 15 16 23 30 42 57 99\n1 4 8 15 16 23 30 42 57 99\n1 4 8 15 16 23 30 42 57 99\n1 4 8 15 16 23 30 42 57 99", "hidden": true}]}, {"id": "selection", "title": "선택 정렬", "kind": "stdin", "funcName": "", "ignoreWs": false, "desc": "선택 정렬로 수열을 오름차순 정렬하시오.\n\ni번째 회차에서는 i번째 칸부터 끝까지 중 가장 작은 수를 찾아 i번째 칸의 수와 바꾼다. 가장 작은 수가 여러 개면 가장 앞에 있는 것을 고른다. 자기 자신과 바꾸게 되는 경우에도 회차는 센다.\n\n입력\n첫째 줄에 수의 개수 n이 주어진다. (2 ≤ n ≤ 100)\n둘째 줄에 정수 n개가 공백으로 구분되어 주어진다. 같은 수가 여러 번 나올 수도 있다.\n\n출력\n한 회차가 끝날 때마다(교환이 없었던 회차도 포함) 리스트 전체를 공백으로 구분해 한 줄에 출력한다. 모두 n-1줄을 출력한다.\n이미 정렬이 끝났더라도 중간에 멈추지 말고 n-1회를 모두 진행한다.\n\n`sort()`나 `sorted()`를 쓰면 중간 과정이 달라져서 통과할 수 없다.", "starter": "n = int(input())\na = list(map(int, input().split()))\n\n", "tests": [{"input": "5\n5 3 8 1 2", "expected": "1 3 8 5 2\n1 2 8 5 3\n1 2 3 5 8\n1 2 3 5 8", "hidden": false}, {"input": "4\n4 1 3 2", "expected": "1 4 3 2\n1 2 3 4\n1 2 3 4", "hidden": false}, {"input": "2\n2 1", "expected": "1 2", "hidden": true}, {"input": "5\n1 2 3 4 5", "expected": "1 2 3 4 5\n1 2 3 4 5\n1 2 3 4 5\n1 2 3 4 5", "hidden": true}, {"input": "5\n9 7 5 3 1", "expected": "1 7 5 3 9\n1 3 5 7 9\n1 3 5 7 9\n1 3 5 7 9", "hidden": true}, {"input": "5\n3 1 3 2 1", "expected": "1 3 3 2 1\n1 1 3 2 3\n1 1 2 3 3\n1 1 2 3 3", "hidden": true}, {"input": "6\n-4 10 0 -7 3 10", "expected": "-7 10 0 -4 3 10\n-7 -4 0 10 3 10\n-7 -4 0 10 3 10\n-7 -4 0 3 10 10\n-7 -4 0 3 10 10", "hidden": true}, {"input": "10\n15 42 8 23 4 16 99 1 57 30", "expected": "1 42 8 23 4 16 99 15 57 30\n1 4 8 23 42 16 99 15 57 30\n1 4 8 23 42 16 99 15 57 30\n1 4 8 15 42 16 99 23 57 30\n1 4 8 15 16 42 99 23 57 30\n1 4 8 15 16 23 99 42 57 30\n1 4 8 15 16 23 30 42 57 99\n1 4 8 15 16 23 30 42 57 99\n1 4 8 15 16 23 30 42 57 99", "hidden": true}]}, {"id": "insertion", "title": "삽입 정렬", "kind": "stdin", "funcName": "", "ignoreWs": false, "desc": "삽입 정렬로 수열을 오름차순 정렬하시오.\n\n두 번째 수부터 하나씩 꺼내, 앞쪽의 이미 정렬된 부분에서 자기 자리를 찾아 끼워 넣는다. 꺼낸 수보다 큰 수들은 한 칸씩 뒤로 민다. 같은 수가 있으면 원래 앞에 있던 수가 그대로 앞에 남도록 한다.\n\n입력\n첫째 줄에 수의 개수 n이 주어진다. (2 ≤ n ≤ 100)\n둘째 줄에 정수 n개가 공백으로 구분되어 주어진다. 같은 수가 여러 번 나올 수도 있다.\n\n출력\n수 하나를 끼워 넣을 때마다(움직이지 않은 경우도 포함) 리스트 전체를 공백으로 구분해 한 줄에 출력한다. 모두 n-1줄을 출력한다.\n이미 정렬이 끝났더라도 중간에 멈추지 말고 n-1회를 모두 진행한다.\n\n`sort()`나 `sorted()`를 쓰면 중간 과정이 달라져서 통과할 수 없다.", "starter": "n = int(input())\na = list(map(int, input().split()))\n\n", "tests": [{"input": "5\n5 3 8 1 2", "expected": "3 5 8 1 2\n3 5 8 1 2\n1 3 5 8 2\n1 2 3 5 8", "hidden": false}, {"input": "4\n4 1 3 2", "expected": "1 4 3 2\n1 3 4 2\n1 2 3 4", "hidden": false}, {"input": "2\n2 1", "expected": "1 2", "hidden": true}, {"input": "5\n1 2 3 4 5", "expected": "1 2 3 4 5\n1 2 3 4 5\n1 2 3 4 5\n1 2 3 4 5", "hidden": true}, {"input": "5\n9 7 5 3 1", "expected": "7 9 5 3 1\n5 7 9 3 1\n3 5 7 9 1\n1 3 5 7 9", "hidden": true}, {"input": "5\n3 1 3 2 1", "expected": "1 3 3 2 1\n1 3 3 2 1\n1 2 3 3 1\n1 1 2 3 3", "hidden": true}, {"input": "6\n-4 10 0 -7 3 10", "expected": "-4 10 0 -7 3 10\n-4 0 10 -7 3 10\n-7 -4 0 10 3 10\n-7 -4 0 3 10 10\n-7 -4 0 3 10 10", "hidden": true}, {"input": "10\n15 42 8 23 4 16 99 1 57 30", "expected": "15 42 8 23 4 16 99 1 57 30\n8 15 42 23 4 16 99 1 57 30\n8 15 23 42 4 16 99 1 57 30\n4 8 15 23 42 16 99 1 57 30\n4 8 15 16 23 42 99 1 57 30\n4 8 15 16 23 42 99 1 57 30\n1 4 8 15 16 23 42 99 57 30\n1 4 8 15 16 23 42 57 99 30\n1 4 8 15 16 23 30 42 57 99", "hidden": true}]}]}</script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script id="appjs">
+(function () {
+  "use strict";
+  var SELF_JS = document.currentScript ? document.currentScript.textContent : "";
+  var CSS_TEXT = document.getElementById("css").textContent;
+  var headStyle = document.head ? document.head.querySelector("style") : null;
+  var RESET = headStyle ? headStyle.textContent : "";
+  var FONT_LINK = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Nanum+Pen+Script&display=swap">';
+  var SK_TAGS = '<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></' + 'script>' +
+    '<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></' + 'script>';
+  var LIMIT_MS = 2000;
+
+  var state;
+  try { state = JSON.parse(document.getElementById("state").textContent); } catch (e) { state = { problems: [] }; }
+  if (!state.problems) state.problems = [];
+
+  var ui = { mode: "student", current: state.problems[0] ? state.problems[0].id : null, canEdit: false, dirty: false, sample: null, artifact: null, results: {}, passed: {} };
+  var app = document.getElementById("app");
+
+  // ---------- 작은 도우미 ----------
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function richText(s) { return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>"); }
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function cur() { return state.problems.find(function (p) { return p.id === ui.current; }) || null; }
+  function h(html) { var t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+
+  var MARK_PASS = '<svg viewBox="0 0 28 28" aria-hidden="true"><path class="stroke" d="M14 3.5c6.2-.3 10.6 4.2 10.4 10.3-.2 6-4.9 10.4-10.8 10.2C7.8 23.8 3.4 19.4 3.6 13.6 3.8 8.6 7.6 4.9 12.4 4.1"/></svg>';
+  var MARK_FAIL = '<svg viewBox="0 0 28 28" aria-hidden="true"><path class="stroke" d="M6 22.5L22.5 5.5"/></svg>';
+  var MARK_TLE = '<svg viewBox="0 0 28 28" aria-hidden="true"><path class="stroke" d="M6 22.5L22.5 5.5"/><path class="stroke" d="M9 7.5l11 13" stroke-opacity=".45"/></svg>';
+
+  // ---------- 파이썬 실행 (Skulpt) ----------
+  var skReady = typeof window.Sk !== "undefined";
+
+  function runPy(code, stdin, limitMs) {
+    var out = "";
+    var lines = String(stdin || "").replace(/\r/g, "").split("\n");
+    if (lines.length && lines[lines.length - 1] === "") lines.pop();
+    var li = 0;
+    Sk.configure({
+      __future__: Sk.python3,
+      output: function (t) { out += t; if (out.length > 200000) throw new Sk.builtin.RuntimeError("출력이 너무 많습니다 (20만 글자 초과)"); },
+      read: function (f) {
+        if (Sk.builtinFiles && Sk.builtinFiles.files[f] !== undefined) return Sk.builtinFiles.files[f];
+        throw "File not found: '" + f + "'";
+      },
+      inputfunTakesPrompt: true,
+      inputfun: function () {
+        if (li >= lines.length) {
+          var E = Sk.builtin.EOFError || Sk.builtin.RuntimeError;
+          throw new E("EOFError: 더 읽을 입력이 없습니다");
+        }
+        return lines[li++];
+      },
+      execLimit: limitMs
+    });
+    return Sk.misceval.asyncToPromise(function () {
+      return Sk.importMainWithBody("<학생코드>", false, code, true);
+    }).then(function (mod) { return { ok: true, out: out, mod: mod }; },
+      function (e) { return { ok: false, out: out, err: String(e && e.toString ? e.toString() : e) }; });
+  }
+  function pyVal(mod, name) { try { var v = mod.$d[name]; return v === undefined ? undefined : Sk.ffi.remapToJs(v); } catch (e) { return undefined; } }
+
+  function normOut(s, ignoreWs) {
+    s = String(s || "").replace(/\r/g, "");
+    if (ignoreWs) return s.trim().split(/\s+/).filter(Boolean).join(" ");
+    return s.split("\n").map(function (l) { return l.replace(/[ \t]+$/, ""); }).join("\n").replace(/\n+$/, "").replace(/^\n+/, "");
+  }
+
+  var HELPER = [
+    "def __cmp(a, b):",
+    "    if isinstance(b, bool) or isinstance(a, bool):",
+    "        return type(a) == type(b) and a == b",
+    "    if isinstance(a, float) or isinstance(b, float):",
+    "        try:",
+    "            return abs(a - b) <= 1e-9 * max(1.0, abs(b))",
+    "        except Exception:",
+    "            return False",
+    "    return a == b",
+    ""
+  ].join("\n");
+
+  function explainErr(err, studentLines) {
+    var m = /on line (\d+)/.exec(err);
+    var line = m ? parseInt(m[1], 10) : null;
+    var text = err.replace(/\s*on line \d+\s*$/, "").replace(/^RuntimeError: EOFError/, "EOFError");
+    if (line && line > studentLines) return { text: text, where: "함수를 부르는 단계" };
+    return { text: text, where: line ? line + "번째 줄" : "" };
+  }
+
+  function gradeCase(p, code, t) {
+    var studentLines = code.split("\n").length;
+    if (p.kind === "function") {
+      var prog = code + "\n\n" + HELPER +
+        "__r = " + p.funcName + "(" + t.input + ")\n" +
+        "__e = (" + t.expected + ")\n" +
+        "__ok = __cmp(__r, __e)\n" +
+        "__rr = repr(__r)\n";
+      return runPy(prog, "", LIMIT_MS).then(function (r) {
+        if (!r.ok) return failFromErr(r, studentLines);
+        var ok = pyVal(r.mod, "__ok");
+        return { status: ok ? "pass" : "wrong", actual: pyVal(r.mod, "__rr") };
+      });
+    }
+    return runPy(code, t.input, LIMIT_MS).then(function (r) {
+      if (!r.ok) return failFromErr(r, studentLines);
+      var ok = normOut(r.out, p.ignoreWs) === normOut(t.expected, p.ignoreWs);
+      return { status: ok ? "pass" : "wrong", actual: r.out };
+    });
+  }
+  function failFromErr(r, studentLines) {
+    if (/^TimeLimitError/.test(r.err)) return { status: "tle", actual: r.out, err: "2초 안에 끝나지 않았습니다. 반복문이 끝나는 조건을 확인하세요." };
+    var x = explainErr(r.err, studentLines);
+    return { status: "err", actual: r.out, err: (x.where ? "[" + x.where + "] " : "") + x.text };
+  }
+
+  // ---------- 화면 ----------
+  function render() {
+    app.innerHTML = "";
+    var top = h('<header class="top"><div class="brand">코드 채점실<small>파이썬 실습</small></div></header>');
+    if (ui.canEdit) {
+      var modes = h('<div class="modes" role="group" aria-label="화면 선택">' +
+        '<button type="button" data-m="student">학생 화면</button><button type="button" data-m="teacher">문제 관리</button></div>');
+      modes.querySelectorAll("button").forEach(function (b) {
+        b.setAttribute("aria-pressed", String(b.dataset.m === ui.mode));
+        b.addEventListener("click", function () { ui.mode = b.dataset.m; render(); });
+      });
+      top.appendChild(modes);
+    }
+    app.appendChild(top);
+    if (!skReady) app.appendChild(h('<div class="banner">파이썬 실행기를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요.</div>'));
+
+    var wrap = h('<div class="wrap"></div>');
+    wrap.appendChild(renderList());
+    var main = document.createElement("main");
+    wrap.appendChild(main);
+    app.appendChild(wrap);
+    if (ui.mode === "teacher") renderTeacher(main); else renderStudent(main);
+  }
+
+  function renderList() {
+    var aside = h('<aside><h3>문제 목록</h3><ul class="plist"></ul></aside>');
+    var ul = aside.querySelector("ul");
+    state.problems.forEach(function (p, i) {
+      var li = document.createElement("li");
+      var b = h('<button type="button"><span class="num">' + String(i + 1).padStart(2, "0") + '</span><span>' + esc(p.title || "(제목 없음)") + '</span></button>');
+      if (ui.passed[p.id]) b.appendChild(h('<span class="done" aria-label="모두 통과">맞음</span>'));
+      b.setAttribute("aria-current", String(p.id === ui.current));
+      b.addEventListener("click", function () { ui.current = p.id; render(); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    if (ui.mode === "teacher") {
+      var add = h('<button type="button" class="btn small addbtn">새 문제 추가</button>');
+      add.addEventListener("click", function () {
+        var p = { id: "p" + Date.now().toString(36), title: "새 문제", kind: "stdin", funcName: "", ignoreWs: false, desc: "", starter: "", tests: [{ input: "", expected: "", hidden: false }] };
+        state.problems.push(p); ui.current = p.id; ui.dirty = true; render();
+      });
+      aside.appendChild(add);
+    }
+    if (!state.problems.length) aside.appendChild(h('<p class="note">아직 등록된 문제가 없습니다.</p>'));
+    return aside;
+  }
+
+  function kindTag(p) {
+    if (p.kind === "function") return '<span class="tag">함수 작성 <code>' + esc(p.funcName || "?") + '(…)</code></span>';
+    return '<span class="tag">입력 → 출력</span>';
+  }
+
+  function renderStudent(main) {
+    var p = cur();
+    if (!p) { main.appendChild(h('<p class="note">문제를 고르세요.' + (ui.canEdit ? ' 문제 관리에서 새 문제를 추가할 수 있습니다.' : '') + '</p>')); return; }
+    var visible = p.tests.filter(function (t) { return !t.hidden; });
+    var hiddenN = p.tests.length - visible.length;
+
+    var head = h('<div class="ptitle"><h2>' + esc(p.title) + '</h2>' + kindTag(p) + (p.sample ? '<span class="sample-tag">예시 문제</span>' : '') + '</div>');
+    main.appendChild(head);
+    main.appendChild(h('<div class="desc">' + richText(p.desc) + '</div>'));
+
+    if (visible.length) {
+      var exs = h('<div class="examples"></div>');
+      visible.forEach(function (t, i) {
+        var l1 = p.kind === "function" ? "호출" : "입력", l2 = p.kind === "function" ? "돌려줄 값" : "출력";
+        var inShown = p.kind === "function" ? p.funcName + "(" + t.input + ")" : t.input;
+        exs.appendChild(h('<div class="ex"><div class="exh">예제 ' + (i + 1) + '</div><div class="exb">' +
+          '<div><span class="lbl">' + l1 + '</span><pre class="v">' + esc(inShown) + '</pre></div>' +
+          '<div><span class="lbl">' + l2 + '</span><pre class="v">' + esc(t.expected) + '</pre></div></div></div>'));
+      });
+      main.appendChild(exs);
+    }
+
+    var draftKey = "draft:" + p.id;
+    var initial = store(draftKey);
+    if (initial == null) initial = p.starter || "";
+    var ed = makeEditor(initial, function (v) { store(draftKey, v); });
+    main.appendChild(ed.el);
+    main.appendChild(h('<div class="edhelp">Tab은 공백 4칸, Shift+Tab은 내어쓰기. 편집기에서 빠져나가려면 Esc를 누른 뒤 Tab.' + (hiddenN ? ' 채점에는 공개되지 않은 케이스 ' + hiddenN + '개가 더 들어갑니다.' : '') + '</div>'));
+
+    var actions = h('<div class="actions"><button type="button" class="btn primary" id="grade">채점하기</button>' +
+      (p.kind === "stdin" ? '<button type="button" class="btn" id="trybtn">직접 실행해 보기</button>' : '') +
+      '<button type="button" class="btn small" id="resetbtn">처음 코드로</button><span class="status" id="st" role="status"></span></div>');
+    main.appendChild(actions);
+
+    var runbox = null;
+    if (p.kind === "stdin") {
+      runbox = h('<div class="runbox" hidden><div><label class="lbl" for="tryin">입력값</label><textarea id="tryin" rows="4" spellcheck="false"></textarea>' +
+        '<div class="actions"><button type="button" class="btn small" id="runnow">실행</button></div></div>' +
+        '<div><span class="lbl">실행 결과</span><pre class="v runout" id="tryout"></pre></div></div>');
+      main.appendChild(runbox);
+      actions.querySelector("#trybtn").addEventListener("click", function () { runbox.hidden = !runbox.hidden; });
+      runbox.querySelector("#runnow").addEventListener("click", function () {
+        var o = runbox.querySelector("#tryout"); o.textContent = "실행 중…";
+        runPy(ed.value(), runbox.querySelector("#tryin").value, 4000).then(function (r) {
+          o.textContent = r.out + (r.ok ? "" : (r.out ? "\n" : "") + (/^TimeLimitError/.test(r.err) ? "4초가 지나 멈췄습니다." : r.err));
+        });
+      });
+    }
+    var resultArea = h('<section aria-live="polite"></section>');
+    main.appendChild(resultArea);
+    if (ui.results[p.id]) drawResults(resultArea, p, ui.results[p.id]);
+
+    actions.querySelector("#resetbtn").addEventListener("click", function (e) {
+      var b = e.currentTarget;
+      if (b.dataset.armed) { ed.set(p.starter || ""); store(draftKey, p.starter || ""); b.textContent = "처음 코드로"; delete b.dataset.armed; return; }
+      b.dataset.armed = "1"; b.textContent = "한 번 더 누르면 지워집니다";
+      setTimeout(function () { if (b.isConnected && b.dataset.armed) { delete b.dataset.armed; b.textContent = "처음 코드로"; } }, 3000);
+    });
+
+    actions.querySelector("#grade").addEventListener("click", function (e) {
+      var btn = e.currentTarget, st = actions.querySelector("#st");
+      if (!skReady) { st.textContent = "파이썬 실행기가 없어 채점할 수 없습니다."; return; }
+      var code = ed.value();
+      if (!code.trim()) { st.textContent = "코드를 먼저 작성하세요."; return; }
+      btn.disabled = true;
+      var res = [], i = 0;
+      (function next() {
+        if (i >= p.tests.length) {
+          btn.disabled = false; st.textContent = "";
+          var run = { code: code, cases: res, at: new Date() };
+          ui.results[p.id] = run;
+          ui.passed[p.id] = res.every(function (r) { return r.status === "pass"; });
+          render();
+          return;
+        }
+        st.textContent = "케이스 " + (i + 1) + " / " + p.tests.length + " 채점 중…";
+        gradeCase(p, code, p.tests[i]).then(function (r) { res.push(r); i++; setTimeout(next, 0); });
+      })();
+    });
+  }
+
+  function lineDiff(exp, act, ignoreWs) {
+    if (ignoreWs) return esc(act);
+    var e = normOut(exp).split("\n"), a = String(act || "").replace(/\r/g, "").replace(/\n+$/, "").split("\n");
+    return a.map(function (l, i) { return (l.replace(/[ \t]+$/, "") !== (e[i] == null ? null : e[i])) ? '<mark class="diff">' + esc(l || " ") + '</mark>' : esc(l); }).join("\n");
+  }
+
+  function drawResults(area, p, run) {
+    var n = run.cases.length, pass = run.cases.filter(function (r) { return r.status === "pass"; }).length;
+    var all = pass === n;
+    var msg = all ? "모든 케이스를 통과했습니다." : (pass === 0 ? "통과한 케이스가 없습니다. 아래에서 틀린 이유를 확인하세요." : (n - pass) + "개 케이스에서 틀렸습니다.");
+    var score = h('<div class="score"><span class="big">' + pass + ' / ' + n + (all ? '<svg viewBox="0 0 120 70" preserveAspectRatio="none" aria-hidden="true"><path class="stroke" style="fill:none;stroke:var(--pen);stroke-width:2.4;stroke-linecap:round" d="M62 4C96 3 117 16 116 34c-1 20-27 32-58 31C26 64 4 52 4 34 4 17 24 6 50 5"/></svg>' : '') + '</span><span class="msg">' + msg + '</span></div>');
+    area.appendChild(score);
+
+    var ul = h('<ul class="cases"></ul>');
+    var visIdx = 0, hidIdx = 0;
+    run.cases.forEach(function (r, i) {
+      var t = p.tests[i];
+      var name = t.hidden ? "숨김 " + (++hidIdx) : "예제 " + (++visIdx);
+      var label = { pass: "통과", wrong: "틀림", err: "오류", tle: "시간 초과" }[r.status];
+      var mark = r.status === "pass" ? MARK_PASS : (r.status === "tle" ? MARK_TLE : MARK_FAIL);
+      var li = h('<li class="case"><div class="case-row"><span class="mark">' + mark + '</span>' +
+        '<span class="cname">' + name + '</span><span class="pill ' + r.status + '">' + label + '</span></div></li>');
+      var row = li.querySelector(".case-row");
+      if (r.status !== "pass") {
+        var det = document.createElement("div"); det.className = "cdetail"; det.hidden = !(i === firstFail(run));
+        var parts = "";
+        if (!t.hidden) {
+          var inShown = p.kind === "function" ? p.funcName + "(" + t.input + ")" : t.input;
+          parts += '<div><span class="lbl">' + (p.kind === "function" ? "호출" : "입력") + '</span><pre class="v">' + esc(inShown) + '</pre></div>';
+          parts += '<div><span class="lbl">기대한 값</span><pre class="v">' + esc(t.expected) + '</pre></div>';
+          if (r.status === "wrong") parts += '<div><span class="lbl">내 코드의 ' + (p.kind === "function" ? "반환값" : "출력") + '</span><pre class="v">' +
+            (p.kind === "function" ? esc(r.actual) : (r.actual ? lineDiff(t.expected, r.actual, p.ignoreWs) : '(아무것도 출력하지 않음)')) + '</pre></div>';
+        } else if (r.status === "wrong") {
+          parts += '<div class="note">공개되지 않은 입력이라 값은 보여 주지 않습니다. 경계값(0, 1, 아주 큰 수, 음수 등)을 넣어 직접 실행해 보세요.</div>';
+        }
+        if (r.err) parts += '<div class="errmsg">' + esc(r.err) + '</div>';
+        det.innerHTML = parts;
+        var tog = h('<button type="button" class="btn small tog">' + (det.hidden ? "자세히" : "접기") + '</button>');
+        tog.setAttribute("aria-expanded", String(!det.hidden));
+        tog.addEventListener("click", function () { det.hidden = !det.hidden; tog.textContent = det.hidden ? "자세히" : "접기"; tog.setAttribute("aria-expanded", String(!det.hidden)); });
+        row.appendChild(tog);
+        li.appendChild(det);
+      }
+      ul.appendChild(li);
+    });
+    area.appendChild(ul);
+
+    if (!all && ui.sample) {
+      var hb = h('<div class="actions"><button type="button" class="btn" id="hintbtn">AI에게 힌트 받기</button><span class="status">정답 코드는 알려 주지 않고 어디를 볼지만 짚어 줍니다.</span></div>');
+      area.appendChild(hb);
+      var box = h('<div class="hint" hidden><span class="lbl">AI 힌트</span><div class="hbody"></div></div>');
+      area.appendChild(box);
+      if (run.hint) { box.hidden = false; box.querySelector(".hbody").textContent = run.hint; }
+      hb.querySelector("#hintbtn").addEventListener("click", function (e) { askHint(p, run, box, e.currentTarget); });
+    }
+  }
+  function firstFail(run) { for (var i = 0; i < run.cases.length; i++) if (run.cases[i].status !== "pass") return i; return -1; }
+
+  function askHint(p, run, box, btn) {
+    var body = box.querySelector(".hbody");
+    box.hidden = false; body.textContent = "생각하는 중…"; btn.disabled = true;
+    var lines = [];
+    run.cases.forEach(function (r, i) {
+      var t = p.tests[i];
+      if (r.status === "pass") return;
+      if (t.hidden) {
+        lines.push("- 비공개 케이스: " + ({ wrong: "결과가 다름", err: "실행 오류 " + (r.err || ""), tle: "시간 초과" }[r.status]));
+      } else {
+        lines.push("- 공개 케이스 입력/호출: " + (p.kind === "function" ? p.funcName + "(" + t.input + ")" : JSON.stringify(t.input)) +
+          "\n  기대값: " + JSON.stringify(t.expected) +
+          (r.status === "wrong" ? "\n  학생 결과: " + JSON.stringify(r.actual) : "") +
+          (r.err ? "\n  오류: " + r.err : ""));
+      }
+    });
+    var prompt = [
+      "너는 고등학교 정보 수업의 파이썬 실습 도우미다. 학생이 제출한 코드가 일부 테스트를 통과하지 못했다.",
+      "규칙:",
+      "1. 고친 코드 전체나 정답 코드를 쓰지 않는다. 필요하면 코드 한 줄 이내의 조각만 보여 준다.",
+      "2. 무엇이 왜 틀렸는지, 어느 줄이나 어떤 경우를 다시 보면 되는지 짚어 준다.",
+      "3. 비공개 케이스의 입력값을 추측해서 구체적으로 알려 주지 않는다. '0이나 음수 같은 경계값을 생각해 보라' 수준까지만 말한다.",
+      "4. 한국어 존댓말로, 4문장 안팎으로 짧게 쓴다. 마크다운 기호는 쓰지 않는다.",
+      "",
+      "[문제 제목] " + p.title,
+      "[문제 형식] " + (p.kind === "function" ? "함수 " + p.funcName + " 작성 (반환값 비교)" : "표준 입력을 받아 출력 (출력 비교" + (p.ignoreWs ? ", 공백 차이 무시)" : ")")),
+      "[문제 설명]", p.desc,
+      "", "[학생 코드]", run.code,
+      "", "[실패한 케이스]", lines.join("\n")
+    ].join("\n");
+    ui.sample(prompt, { onText: function (u) { body.textContent = u.text; } })
+      .then(function (res) { body.textContent = res.text; run.hint = res.text; btn.disabled = false; })
+      .catch(function (e) {
+        btn.disabled = false;
+        var code = e && e.code;
+        if (code === "not_granted") { body.textContent = "AI 힌트 사용이 허용되지 않았습니다."; btn.hidden = true; }
+        else if (code === "rate_limited") body.textContent = "요청이 많아 잠시 막혔습니다. 1~2분 뒤 다시 눌러 주세요.";
+        else body.textContent = "힌트를 받지 못했습니다. (" + (code || "알 수 없는 오류") + ")";
+      });
+  }
+
+  // ---------- 코드 편집기 ----------
+  function makeEditor(text, onChange) {
+    var el = h('<div class="editor"><div class="gutter" aria-hidden="true"></div><textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="파이썬 코드" id="code-' + (ui.current || "x") + '"></textarea></div>');
+    var ta = el.querySelector("textarea"), gut = el.querySelector(".gutter");
+    var escPressed = false;
+    ta.value = text;
+    function nums() {
+      var n = ta.value.split("\n").length, s = "";
+      for (var i = 1; i <= n; i++) s += i + "\n";
+      gut.textContent = s; gut.scrollTop = ta.scrollTop;
+    }
+    function edit(start, end, ins, caretS, caretE) {
+      ta.setRangeText(ins, start, end, "end");
+      if (caretS != null) ta.setSelectionRange(caretS, caretE == null ? caretS : caretE);
+      changed();
+    }
+    function changed() { nums(); onChange(ta.value); }
+    ta.addEventListener("input", changed);
+    ta.addEventListener("scroll", function () { gut.scrollTop = ta.scrollTop; });
+    ta.addEventListener("keydown", function (e) {
+      var v = ta.value, s = ta.selectionStart, en = ta.selectionEnd;
+      if (e.key === "Escape") { escPressed = true; return; }
+      if (e.key === "Tab") {
+        if (escPressed) { escPressed = false; return; }
+        e.preventDefault();
+        var ls = v.lastIndexOf("\n", s - 1) + 1;
+        if (e.shiftKey) {
+          var le = v.indexOf("\n", en); if (le < 0) le = v.length;
+          var block = v.slice(ls, le), removed = 0, first = 0;
+          var nb = block.split("\n").map(function (l, k) { var m = /^ {1,4}/.exec(l); var r = m ? m[0].length : 0; if (k === 0) first = r; removed += r; return l.slice(r); }).join("\n");
+          edit(ls, le, nb, Math.max(ls, s - first), Math.max(ls, en - removed));
+        } else if (s !== en && v.slice(s, en).indexOf("\n") >= 0) {
+          var le2 = v.indexOf("\n", en - 1); if (le2 < 0) le2 = v.length;
+          var blk = v.slice(ls, le2).split("\n"), nb2 = blk.map(function (l) { return "    " + l; }).join("\n");
+          edit(ls, le2, nb2, s + 4, en + 4 * blk.length);
+        } else {
+          edit(s, en, "    ");
+        }
+        return;
+      }
+      escPressed = false;
+      if (e.key === "Enter" && !e.isComposing) {
+        e.preventDefault();
+        var ls2 = v.lastIndexOf("\n", s - 1) + 1;
+        var line = v.slice(ls2, s);
+        var ind = /^[ \t]*/.exec(line)[0];
+        if (/:\s*(#.*)?$/.test(line)) ind += "    ";
+        edit(s, en, "\n" + ind);
+      }
+    });
+    nums();
+    return { el: el, value: function () { return ta.value; }, set: function (t) { ta.value = t; nums(); } };
+  }
+
+  // ---------- 문제 관리 ----------
+  function renderTeacher(main) {
+    var p = cur();
+    if (!p) {
+      main.appendChild(h('<p class="note">왼쪽에서 문제를 고르거나 새 문제를 추가하세요.</p>'));
+      main.appendChild(saveBar());
+      return;
+    }
+    var form = h('<div class="form"></div>');
+    function mark() { ui.dirty = true; var s = document.getElementById("savestate"); if (s) s.textContent = "저장하지 않은 변경 사항이 있습니다."; }
+
+    var f1 = h('<div class="row2"><div class="field"><label for="f-title">제목</label><input id="f-title"></div>' +
+      '<div class="field"><label for="f-kind">채점 방식</label><select id="f-kind"><option value="stdin">입력 → 출력 비교 (input / print)</option><option value="function">함수 반환값 비교</option></select></div></div>');
+    f1.querySelector("#f-title").value = p.title;
+    f1.querySelector("#f-kind").value = p.kind;
+    f1.querySelector("#f-title").addEventListener("input", function (e) { p.title = e.target.value; mark(); });
+    f1.querySelector("#f-kind").addEventListener("change", function (e) { p.kind = e.target.value; mark(); render(); });
+    form.appendChild(f1);
+
+    if (p.kind === "function") {
+      var ff = h('<div class="field"><label for="f-fn">함수 이름 <span class="sub">학생이 정의해야 하는 함수. 예: is_leap</span></label><input id="f-fn" class="mono" spellcheck="false"></div>');
+      ff.querySelector("input").value = p.funcName || "";
+      ff.querySelector("input").addEventListener("input", function (e) { p.funcName = e.target.value.trim(); mark(); });
+      form.appendChild(ff);
+    } else {
+      var fw = h('<label class="check"><input type="checkbox" id="f-ws"> 공백·줄바꿈 차이 무시 <span class="sub" style="color:var(--muted);font-size:.8rem">(켜면 "1 2 3"과 "1\\n2\\n3"을 같게 봅니다)</span></label>');
+      fw.querySelector("input").checked = !!p.ignoreWs;
+      fw.querySelector("input").addEventListener("change", function (e) { p.ignoreWs = e.target.checked; mark(); });
+      form.appendChild(fw);
+    }
+
+    var fd = h('<div class="field"><label for="f-desc">문제 설명 <span class="sub">`백틱`으로 감싸면 코드 글꼴로 보입니다</span></label><textarea id="f-desc" rows="6"></textarea></div>');
+    fd.querySelector("textarea").value = p.desc || "";
+    fd.querySelector("textarea").addEventListener("input", function (e) { p.desc = e.target.value; mark(); });
+    form.appendChild(fd);
+
+    var fs = h('<div class="field"><label for="f-starter">처음 코드 <span class="sub">학생 편집기에 미리 들어갈 코드 (비워 둬도 됨)</span></label><textarea id="f-starter" rows="3" class="mono" spellcheck="false"></textarea></div>');
+    fs.querySelector("textarea").value = p.starter || "";
+    fs.querySelector("textarea").addEventListener("input", function (e) { p.starter = e.target.value; mark(); });
+    form.appendChild(fs);
+
+    var isFn = p.kind === "function";
+    var ft = h('<div class="field"><label>테스트 케이스 <span class="sub">' +
+      (isFn ? "인자는 파이썬 식으로 적습니다. 예: <code>3, [1, 2]</code> / 돌려줄 값: <code>True</code>, <code>\"abc\"</code>, <code>[1, 2]</code>" :
+        "입력은 학생 코드의 input()에 한 줄씩 들어갑니다. 출력은 줄 끝 공백과 마지막 빈 줄을 무시하고 비교합니다.") +
+      '</span></label><div class="tests-wrap"><table class="tests"><thead><tr><th>#</th><th>' + (isFn ? "인자" : "입력") + '</th><th>' + (isFn ? "돌려줄 값" : "기대 출력") + '</th><th>숨김</th><th></th></tr></thead><tbody></tbody></table></div>' +
+      '<div class="actions"><button type="button" class="btn small" id="addt">케이스 추가</button></div></div>');
+    var tb = ft.querySelector("tbody");
+    p.tests.forEach(function (t, i) {
+      var tr = h('<table><tr><td class="n">' + (i + 1) + '</td><td><textarea spellcheck="false" aria-label="케이스 ' + (i + 1) + ' 입력" id="t-in-' + i + '"></textarea></td>' +
+        '<td><textarea spellcheck="false" aria-label="케이스 ' + (i + 1) + ' 기대값" id="t-ex-' + i + '"></textarea></td>' +
+        '<td><input type="checkbox" aria-label="케이스 ' + (i + 1) + ' 숨김" id="t-hd-' + i + '"></td><td><button type="button" class="btn small danger">삭제</button></td></tr></table>').querySelector("tr");
+      var tas = tr.querySelectorAll("textarea");
+      tas[0].value = t.input; tas[1].value = t.expected;
+      tas[0].addEventListener("input", function (e) { t.input = e.target.value; mark(); });
+      tas[1].addEventListener("input", function (e) { t.expected = e.target.value; mark(); });
+      var cb = tr.querySelector("input"); cb.checked = !!t.hidden;
+      cb.addEventListener("change", function (e) { t.hidden = e.target.checked; mark(); });
+      tr.querySelector("button").addEventListener("click", function () { p.tests.splice(i, 1); mark(); render(); });
+      tb.appendChild(tr);
+    });
+    ft.querySelector("#addt").addEventListener("click", function () { p.tests.push({ input: "", expected: "", hidden: true }); mark(); render(); });
+    form.appendChild(ft);
+
+    var fr = h('<div class="field"><label for="f-ref">모범 답안으로 기대값 채우기 <span class="sub">여기에 정답 코드를 넣고 실행하면 위 표의 기대값이 자동으로 채워집니다. 모범 답안은 저장되지 않습니다.</span></label>' +
+      '<textarea id="f-ref" rows="6" class="mono" spellcheck="false"></textarea><div class="actions"><button type="button" class="btn small" id="fill">모범 답안 실행해서 채우기</button><span class="status" id="fillst"></span></div></div>');
+    fr.querySelector("#fill").addEventListener("click", function () {
+      var code = fr.querySelector("textarea").value, st = fr.querySelector("#fillst");
+      if (!code.trim()) { st.textContent = "모범 답안 코드를 먼저 넣으세요."; return; }
+      if (isFn && !p.funcName) { st.textContent = "함수 이름을 먼저 적으세요."; return; }
+      var i = 0, errs = [];
+      (function next() {
+        if (i >= p.tests.length) {
+          mark(); var keep = code; render();
+          var ta = document.getElementById("f-ref"); if (ta) ta.value = keep;
+          var s2 = document.getElementById("fillst"); if (s2) s2.textContent = errs.length ? "오류가 난 케이스: " + errs.join(", ") : p.tests.length + "개 케이스의 기대값을 채웠습니다. 확인 후 저장하세요.";
+          return;
+        }
+        var t = p.tests[i];
+        st.textContent = "케이스 " + (i + 1) + " 실행 중…";
+        var prog = isFn ? code + "\n\n__rr = repr(" + p.funcName + "(" + t.input + "))\n" : code;
+        runPy(prog, isFn ? "" : t.input, 4000).then(function (r) {
+          if (!r.ok) errs.push((i + 1) + "번(" + r.err.split(":")[0] + ")");
+          else t.expected = isFn ? pyVal(r.mod, "__rr") : normOut(r.out, false);
+          i++; setTimeout(next, 0);
+        });
+      })();
+    });
+    form.appendChild(fr);
+
+    var del = h('<div class="actions"><button type="button" class="btn small danger" id="delp">이 문제 삭제</button></div>');
+    del.querySelector("#delp").addEventListener("click", function (e) {
+      var b = e.currentTarget;
+      if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "한 번 더 누르면 삭제됩니다"; return; }
+      state.problems = state.problems.filter(function (x) { return x.id !== p.id; });
+      ui.current = state.problems[0] ? state.problems[0].id : null; mark(); render();
+    });
+    form.appendChild(del);
+
+    main.appendChild(form);
+    main.appendChild(saveBar());
+  }
+
+  function saveBar() {
+    var bar = h('<div class="savebar"><button type="button" class="btn primary" id="save">' + (ui.artifact ? "변경 사항 저장" : "problems.json 내용 복사") + '</button><span class="status" id="savestate">' +
+      (ui.dirty ? "저장하지 않은 변경 사항이 있습니다." : (ui.artifact ? "저장하면 학생들이 보는 페이지에 바로 반영됩니다." : "여기서 고친 내용은 이 브라우저에만 남습니다. 복사해서 저장소의 problems.json에 붙여 넣어야 학생들에게 반영됩니다.")) + '</span></div>');
+    bar.appendChild(h('<p class="note" style="flex-basis:100%;margin:0">숨김 케이스는 학생 화면에 표시되지 않지만, 공개 저장소의 problems.json을 열어 보면 값을 찾을 수 있습니다.</p>'));
+    bar.querySelector("#save").addEventListener("click", function (e) {
+      var btn = e.currentTarget, st = bar.querySelector("#savestate");
+      if (!ui.artifact) {
+        var text = JSON.stringify({ problems: state.problems }, null, 2) + "\n";
+        var done = function () { st.textContent = "복사했습니다. GitHub 저장소의 problems.json 내용을 지우고 붙여 넣은 뒤 Commit changes를 누르세요. 1~2분 뒤 사이트에 반영됩니다."; ui.dirty = false; };
+        var fallback = function () {
+          var ta = document.createElement("textarea"); ta.value = text; ta.className = "mono"; ta.rows = 8; ta.style.width = "100%"; ta.readOnly = true;
+          bar.appendChild(ta); ta.focus(); ta.select();
+          st.textContent = "자동 복사가 막혀 있습니다. 아래 칸의 내용을 Ctrl+C로 복사하세요.";
+        };
+        try { navigator.clipboard.writeText(text).then(done, fallback); } catch (er) { fallback(); }
+        return;
+      }
+      btn.disabled = true; st.textContent = "저장 중…";
+      state.problems.forEach(function (p) { delete p.sample; });
+      ui.artifact.publish(buildDoc()).then(function () {
+        ui.dirty = false; st.textContent = "저장했습니다. 페이지가 새 버전으로 다시 열립니다.";
+      }).catch(function (err) {
+        btn.disabled = false;
+        var c = err && err.code;
+        if (c === "conflict") st.textContent = "다른 곳에서 먼저 저장해서 이번 변경은 반영되지 않았습니다. 페이지가 최신 버전으로 다시 열립니다.";
+        else if (c === "not_writer" || c === "not_granted") st.textContent = "이 계정은 읽기 전용이라 저장할 수 없습니다.";
+        else if (c === "rate_limited") st.textContent = "저장 요청이 너무 잦습니다. 잠시 뒤 다시 누르세요.";
+        else st.textContent = "저장하지 못했습니다 (" + (c || "알 수 없는 오류") + ").";
+      });
+    });
+    return bar;
+  }
+
+  function buildDoc() {
+    var json = JSON.stringify({ problems: state.problems }).replace(/</g, "\\u003c");
+    return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>' +
+      RESET + '</style></head><body>' +
+      '<title>코드 채점실</title>\n' + FONT_LINK + '\n<style id="css">' + CSS_TEXT + '</style>\n<div id="app"></div>\n' +
+      '<script type="application/json" id="state">' + json + '</' + 'script>\n' + SK_TAGS + '\n' +
+      '<script id="appjs">' + SELF_JS + '</' + 'script>\n</body></html>';
+  }
+
+  window.addEventListener("beforeunload", function (e) { if (ui.dirty && ui.mode === "teacher") { e.preventDefault(); e.returnValue = ""; } });
+
+  if (location.hash === "#edit") { ui.canEdit = true; ui.mode = "teacher"; }
+  window.addEventListener("hashchange", function () { if (location.hash === "#edit") { ui.canEdit = true; ui.mode = "teacher"; render(); } });
+  render();
+  fetch("problems.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (d) {
+    if (!d || !Array.isArray(d.problems)) return;
+    state = d;
+    if (!cur()) ui.current = state.problems[0] ? state.problems[0].id : null;
+    render();
+  }).catch(function () {});
+
+  // ---------- 런타임 기능 (있으면 켜기) ----------
+  var C = window.claude;
+  if (C && typeof C.use === "function") {
+    C.use("user").then(function (u) {
+      if (!u) return;
+      return u.canEdit().then(function (can) { if (can) { ui.canEdit = true; render(); } });
+    }).catch(function () {});
+    C.use("artifact").then(function (a) { ui.artifact = a; }).catch(function () {});
+    C.use("sample").then(function (s) { if (s) { ui.sample = s; render(); } }).catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
