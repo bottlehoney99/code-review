@@ -933,6 +933,465 @@
           "hidden": true
         }
       ]
+    },
+    {
+      "id": "sci_extinct",
+      "group": "통합과학 탐사",
+      "title": "1장 다섯 번의 멸종",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "과학 동아리 서윤이가 폐교된 실험실에서 찾은 시간 탐사선 '지오호'. 계기판에는 파이썬 콘솔만 켜져 있고, 코드를 맞게 입력해야 다음 시대로 넘어간다. 첫 도착지인 백악기 말, 하늘에서 불덩이가 떨어지는 가운데 콘솔에 메시지가 뜬다. \"지구에 있었던 대멸종을 기록하라.\"\n\n첫 줄에 대멸종 기록의 개수 n이 주어지고, 다음 n줄에 시기가 하나씩 주어진다.\n시기를 `1번째 대멸종: 오르도비스기 말` 형식으로 한 줄씩 출력한 뒤, 마지막 줄에 `대멸종 횟수: n`을 출력하시오.\n\n생각해 보기: 대멸종 직후 살아남은 생물 무리는 어떻게 되었을까?\n\n배울 것: for 반복문, range(), f-string\n성취기준: [10통과2-01-01]",
+      "starter": "n = int(input())\n",
+      "tests": [
+        {
+          "input": "5\n오르도비스기 말\n데본기 후기\n페름기 말\n트라이아스기 말\n백악기 말",
+          "expected": "1번째 대멸종: 오르도비스기 말\n2번째 대멸종: 데본기 후기\n3번째 대멸종: 페름기 말\n4번째 대멸종: 트라이아스기 말\n5번째 대멸종: 백악기 말\n대멸종 횟수: 5",
+          "hidden": false
+        },
+        {
+          "input": "2\n페름기 말\n백악기 말",
+          "expected": "1번째 대멸종: 페름기 말\n2번째 대멸종: 백악기 말\n대멸종 횟수: 2",
+          "hidden": false
+        },
+        {
+          "input": "1\n백악기 말",
+          "expected": "1번째 대멸종: 백악기 말\n대멸종 횟수: 1",
+          "hidden": true
+        },
+        {
+          "input": "3\n오르도비스기 말\n데본기 후기\n페름기 말",
+          "expected": "1번째 대멸종: 오르도비스기 말\n2번째 대멸종: 데본기 후기\n3번째 대멸종: 페름기 말\n대멸종 횟수: 3",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_moth",
+      "group": "통합과학 탐사",
+      "title": "2장 검게 변한 나방",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "탐사선이 19세기 영국 맨체스터에 내린다. 공장 굴뚝의 그을음 때문에 나무껍질이 검게 변했고, 나뭇가지에 앉은 밝은 나방이 새에게 먼저 잡아먹힌다.\n\n첫 줄에 나무껍질 색(`밝음` 또는 `어두움`)이 주어진다. 둘째 줄에는 나방들의 색이 공백으로 구분되어 주어진다.\n나무껍질과 같은 색의 나방만 새의 눈에 띄지 않아 살아남는다고 할 때, 다음 두 줄을 출력하시오.\n\n살아남은 나방: (마릿수)\n생존 비율: (백분율, 소수 첫째 자리까지)%\n\n예) 7마리 중 4마리가 살아남으면 `생존 비율: 57.1%`\n\n생각해 보기: 같은 일이 여러 세대 되풀이되면 나방 무리 전체의 색은 어떻게 바뀔까?\n\n배울 것: split(), count(), 비율 계산\n성취기준: [10통과2-01-02]",
+      "starter": "bark = input()\nmoths = input().split()\n",
+      "tests": [
+        {
+          "input": "어두움\n밝음 어두움 밝음 어두움 어두움 밝음 어두움",
+          "expected": "살아남은 나방: 4\n생존 비율: 57.1%",
+          "hidden": false
+        },
+        {
+          "input": "밝음\n밝음 밝음 어두움 밝음",
+          "expected": "살아남은 나방: 3\n생존 비율: 75.0%",
+          "hidden": false
+        },
+        {
+          "input": "어두움\n밝음 밝음 밝음",
+          "expected": "살아남은 나방: 0\n생존 비율: 0.0%",
+          "hidden": true
+        },
+        {
+          "input": "밝음\n밝음",
+          "expected": "살아남은 나방: 1\n생존 비율: 100.0%",
+          "hidden": true
+        },
+        {
+          "input": "어두움\n어두움 밝음 밝음",
+          "expected": "살아남은 나방: 1\n생존 비율: 33.3%",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_redox",
+      "group": "통합과학 탐사",
+      "title": "3장 산소를 얻고 잃는 일",
+      "kind": "function",
+      "funcName": "judge",
+      "ignoreWs": false,
+      "desc": "다음 도착지는 3천 년 전 히타이트의 제철소. 장인이 철광석(Fe₂O₃)을 숯과 함께 달구자 철이 녹아 나온다. 콘솔 메시지는 \"산소를 얻었는지 잃었는지로 반응을 판정하라.\"\n\n어떤 물질이 반응 전과 후에 결합한 산소 원자 수 before, after를 받아 판정 결과를 돌려주는 함수 `judge(before, after)`를 작성하시오.\n\n산소가 늘었으면 `\"산화\"`\n산소가 줄었으면 `\"환원\"`\n같으면 `\"변화 없음\"`\n\n예) 철광석의 철은 산소를 잃어 철이 되므로 `judge(3, 0)`은 `\"환원\"`이다.\n\nprint로 출력하지 말고 return으로 돌려준다.\n\n생각해 보기: 철광석이 환원될 때 함께 산화되는 물질은 무엇일까?\n\n배울 것: 함수, return, if / elif / else\n성취기준: [10통과2-01-03]",
+      "starter": "def judge(before, after):\n    ",
+      "tests": [
+        {
+          "input": "3, 0",
+          "expected": "'환원'",
+          "hidden": false
+        },
+        {
+          "input": "1, 2",
+          "expected": "'산화'",
+          "hidden": false
+        },
+        {
+          "input": "2, 2",
+          "expected": "'변화 없음'",
+          "hidden": true
+        },
+        {
+          "input": "0, 1",
+          "expected": "'산화'",
+          "hidden": true
+        },
+        {
+          "input": "4, 1",
+          "expected": "'환원'",
+          "hidden": true
+        },
+        {
+          "input": "0, 0",
+          "expected": "'변화 없음'",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_ph",
+      "group": "통합과학 탐사",
+      "title": "4장 벌에 쏘인 서윤이",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "현재로 잠시 돌아온 서윤이가 학교 화단에서 벌에 쏘였다. 보건실에서 상처에 바를 약을 고르기 전에 먼저 물질의 성질부터 알아야 한다.\n\npH 값 하나가 실수로 주어진다. 7보다 작으면 `산성`, 7이면 `중성`, 7보다 크면 `염기성`을 출력하시오.\n\n배울 것: float(), if / elif / else\n성취기준: [10통과2-01-04]",
+      "starter": "ph = float(input())\n",
+      "tests": [
+        {
+          "input": "3",
+          "expected": "산성",
+          "hidden": false
+        },
+        {
+          "input": "9.5",
+          "expected": "염기성",
+          "hidden": false
+        },
+        {
+          "input": "7",
+          "expected": "중성",
+          "hidden": true
+        },
+        {
+          "input": "6.9",
+          "expected": "산성",
+          "hidden": true
+        },
+        {
+          "input": "7.0",
+          "expected": "중성",
+          "hidden": true
+        },
+        {
+          "input": "14",
+          "expected": "염기성",
+          "hidden": true
+        },
+        {
+          "input": "0",
+          "expected": "산성",
+          "hidden": true
+        },
+        {
+          "input": "7.1",
+          "expected": "염기성",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_neutral",
+      "group": "통합과학 탐사",
+      "title": "4장 중화할 물질 고르기",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "벌침의 독은 산성이다. 보건실 선반에 있는 물질 중 염기성인 것을 발라야 중화가 일어난다.\n\n첫 줄에 물질의 개수 n이 주어지고, 다음 n줄에 `물질이름 pH`가 공백으로 구분되어 주어진다. 물질 이름에는 공백이 없다.\npH가 7보다 큰 물질의 이름을 입력된 순서대로 한 줄에 하나씩 출력하시오. 그런 물질이 하나도 없으면 `없음`을 출력한다.\n\n배울 것: 반복문 안의 조건문, 리스트에 모으기\n성취기준: [10통과2-01-04]",
+      "starter": "n = int(input())\n",
+      "tests": [
+        {
+          "input": "5\n식초 3\n레몬즙 2\n베이킹소다수용액 9\n증류수 7\n제산제 10",
+          "expected": "베이킹소다수용액\n제산제",
+          "hidden": false
+        },
+        {
+          "input": "2\n식초 3\n증류수 7",
+          "expected": "없음",
+          "hidden": false
+        },
+        {
+          "input": "3\n암모니아수 11.5\n비눗물 9\n우유 6.5",
+          "expected": "암모니아수\n비눗물",
+          "hidden": true
+        },
+        {
+          "input": "1\n제산제 10",
+          "expected": "제산제",
+          "hidden": true
+        },
+        {
+          "input": "4\n탄산음료 2.5\n증류수 7.0\n바닷물 8.1\n위액 1.5",
+          "expected": "바닷물",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_heat",
+      "group": "통합과학 탐사",
+      "title": "5장 손난로와 냉찜질팩",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "부은 손등에 냉찜질팩을 대고 있던 서윤이는 겨울에 쓰던 손난로를 떠올린다. 둘 다 화학 반응인데 하나는 뜨거워지고 하나는 차가워진다.\n\n반응 전 온도와 반응 후 주변 온도가 공백으로 구분된 실수로 주어진다.\n온도가 올랐으면 `에너지 방출`, 내렸으면 `에너지 흡수`, 같으면 `변화 없음`을 출력하시오. 다음 줄에는 온도 변화량의 크기를 소수 첫째 자리까지 `온도 변화: 3.5도` 형식으로 출력한다.\n\n배울 것: map(), abs(), 조건문\n성취기준: [10통과2-01-05]",
+      "starter": "before, after = map(float, input().split())\n",
+      "tests": [
+        {
+          "input": "20 55",
+          "expected": "에너지 방출\n온도 변화: 35.0도",
+          "hidden": false
+        },
+        {
+          "input": "25 8.5",
+          "expected": "에너지 흡수\n온도 변화: 16.5도",
+          "hidden": false
+        },
+        {
+          "input": "18 18",
+          "expected": "변화 없음\n온도 변화: 0.0도",
+          "hidden": true
+        },
+        {
+          "input": "30.5 30",
+          "expected": "에너지 흡수\n온도 변화: 0.5도",
+          "hidden": true
+        },
+        {
+          "input": "10 10.4",
+          "expected": "에너지 방출\n온도 변화: 0.4도",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_roles",
+      "group": "통합과학 탐사",
+      "title": "6장 들판의 생물 분류",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "탐사선이 서윤이를 들판 생태계에 내려 준다. 풀은 메뚜기가, 메뚜기는 개구리가, 개구리는 뱀이 먹는다. 바닥의 낙엽에는 버섯이 자라고 있다.\n\n첫 줄에 생물 수 n이 주어지고, 다음 n줄에 `생물이름 역할`이 주어진다. 역할은 `생산자`, `소비자`, `분해자` 중 하나이다.\n아래 형식으로 세 줄을 출력하시오. 생물 이름은 입력된 순서대로 공백으로 구분하고, 해당하는 생물이 없으면 `없음`을 쓴다.\n\n생산자: 풀\n소비자: 메뚜기 개구리 뱀\n분해자: 버섯\n\n배울 것: 딕셔너리 또는 리스트로 분류하기, join()\n성취기준: [10통과2-02-01]",
+      "starter": "n = int(input())\n",
+      "tests": [
+        {
+          "input": "5\n풀 생산자\n메뚜기 소비자\n개구리 소비자\n뱀 소비자\n버섯 분해자",
+          "expected": "생산자: 풀\n소비자: 메뚜기 개구리 뱀\n분해자: 버섯",
+          "hidden": false
+        },
+        {
+          "input": "3\n벼 생산자\n세균 분해자\n참새 소비자",
+          "expected": "생산자: 벼\n소비자: 참새\n분해자: 세균",
+          "hidden": false
+        },
+        {
+          "input": "2\n토끼 소비자\n여우 소비자",
+          "expected": "생산자: 없음\n소비자: 토끼 여우\n분해자: 없음",
+          "hidden": true
+        },
+        {
+          "input": "4\n곰팡이 분해자\n식물플랑크톤 생산자\n동물플랑크톤 소비자\n세균 분해자",
+          "expected": "생산자: 식물플랑크톤\n소비자: 동물플랑크톤\n분해자: 곰팡이 세균",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_pyramid",
+      "group": "통합과학 탐사",
+      "title": "6장 줄어드는 에너지",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "먹이 사슬을 따라 위로 올라갈수록 전달되는 에너지는 줄어든다. 한 영양 단계에서 다음 단계로 약 10%만 전해진다고 하자.\n\n첫 줄에 생산자가 가진 에너지(kcal, 정수)가 주어지고, 둘째 줄에 영양 단계의 생물 이름이 아래에서부터 공백으로 구분되어 주어진다.\n각 단계의 에너지를 `풀: 10000 kcal` 형식으로 한 줄씩 출력하시오. 다음 단계의 에너지는 앞 단계 에너지를 10으로 나눈 몫(`//`)으로 계산한다.\n\n생각해 보기: 개구리가 갑자기 사라지면 메뚜기 수와 풀의 양은 어떻게 변할까?\n\n배울 것: 반복하며 값 갱신하기, 정수 나눗셈\n성취기준: [10통과2-02-02]",
+      "starter": "energy = int(input())\nlevels = input().split()\n",
+      "tests": [
+        {
+          "input": "10000\n풀 메뚜기 개구리 뱀",
+          "expected": "풀: 10000 kcal\n메뚜기: 1000 kcal\n개구리: 100 kcal\n뱀: 10 kcal",
+          "hidden": false
+        },
+        {
+          "input": "5000\n벼 메뚜기 참새",
+          "expected": "벼: 5000 kcal\n메뚜기: 500 kcal\n참새: 50 kcal",
+          "hidden": false
+        },
+        {
+          "input": "123456\n식물플랑크톤 동물플랑크톤 멸치 고등어 상어",
+          "expected": "식물플랑크톤: 123456 kcal\n동물플랑크톤: 12345 kcal\n멸치: 1234 kcal\n고등어: 123 kcal\n상어: 12 kcal",
+          "hidden": true
+        },
+        {
+          "input": "800\n풀 토끼",
+          "expected": "풀: 800 kcal\n토끼: 80 kcal",
+          "hidden": true
+        },
+        {
+          "input": "999\n이끼 달팽이 개구리 뱀",
+          "expected": "이끼: 999 kcal\n달팽이: 99 kcal\n개구리: 9 kcal\n뱀: 0 kcal",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_co2",
+      "group": "통합과학 탐사",
+      "title": "7장 마우나로아의 숫자",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "하와이 마우나로아 관측소. 1958년부터 이어진 기록지에 대기 중 이산화 탄소 농도가 적혀 있다.\n\n첫 줄에 연도들이, 둘째 줄에 같은 순서로 그해의 이산화 탄소 농도(ppm, 정수)가 공백으로 구분되어 주어진다. 연도는 오름차순이다.\n다음 세 줄을 출력하시오.\n\n증가량: (마지막 값 - 처음 값) ppm\n400 초과: (농도가 400을 넘은 연도를 공백으로 구분, 없으면 없음)\n10년당 평균 증가: (증가량 ÷ 기간(년) × 10, 소수 첫째 자리까지) ppm\n\n생각해 보기: 이산화 탄소 농도가 높아지면 왜 지구의 평균 기온이 올라갈까?\n\n배울 것: 두 리스트를 함께 다루기, 인덱스 [-1]\n성취기준: [10통과2-02-03]",
+      "starter": "years = list(map(int, input().split()))\nco2 = list(map(int, input().split()))\n",
+      "tests": [
+        {
+          "input": "1960 1980 2000 2020 2024\n317 339 370 414 424",
+          "expected": "증가량: 107 ppm\n400 초과: 2020 2024\n10년당 평균 증가: 16.7 ppm",
+          "hidden": false
+        },
+        {
+          "input": "1960 1990 2010\n317 354 390",
+          "expected": "증가량: 73 ppm\n400 초과: 없음\n10년당 평균 증가: 14.6 ppm",
+          "hidden": false
+        },
+        {
+          "input": "2000 2015 2024\n370 401 424",
+          "expected": "증가량: 54 ppm\n400 초과: 2015 2024\n10년당 평균 증가: 22.5 ppm",
+          "hidden": true
+        },
+        {
+          "input": "1980 2000\n339 370",
+          "expected": "증가량: 31 ppm\n400 초과: 없음\n10년당 평균 증가: 15.5 ppm",
+          "hidden": true
+        },
+        {
+          "input": "2016 2020\n404 414",
+          "expected": "증가량: 10 ppm\n400 초과: 2016 2020\n10년당 평균 증가: 25.0 ppm",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_fusion",
+      "group": "통합과학 탐사",
+      "title": "8장 태양의 연료",
+      "kind": "function",
+      "funcName": "fusion_energy",
+      "ignoreWs": false,
+      "desc": "탐사선이 태양 근처 궤도에 멈춘다. 콘솔이 묻는다. \"태양은 무엇을 태워서 빛나는가?\" 답은 수소 핵융합이다. 수소가 헬륨으로 바뀔 때 줄어든 질량이 에너지로 바뀐다.\n\n수소의 질량 mass(kg)와 질량이 줄어드는 비율 ratio를 받아, 방출되는 에너지(J)를 돌려주는 함수 `fusion_energy(mass, ratio)`를 작성하시오.\n\n줄어든 질량 m = mass × ratio\n에너지 E = m × c², 빛의 속도 c = 3 × 10⁸ m/s (`3 * 10**8`)\n\n예) 수소 1 kg에서 질량이 0.7% 줄면 `fusion_energy(1, 0.007)`은 약 6.3 × 10¹⁴ J이다.\n\n배울 것: 거듭제곱 **, 함수와 return\n성취기준: [10통과2-02-04]",
+      "starter": "def fusion_energy(mass, ratio):\n    c = 3 * 10**8\n    ",
+      "tests": [
+        {
+          "input": "1, 0.007",
+          "expected": "630000000000000.0",
+          "hidden": false
+        },
+        {
+          "input": "2, 0.007",
+          "expected": "1260000000000000.0",
+          "hidden": false
+        },
+        {
+          "input": "0.5, 0.007",
+          "expected": "315000000000000.0",
+          "hidden": true
+        },
+        {
+          "input": "10, 0.001",
+          "expected": "900000000000000.0",
+          "hidden": true
+        },
+        {
+          "input": "1, 1",
+          "expected": "90000000000000000",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_eff",
+      "group": "통합과학 탐사",
+      "title": "9장 에너지 효율 계산",
+      "kind": "function",
+      "funcName": "efficiency",
+      "ignoreWs": false,
+      "desc": "마지막 도착지는 발전 단지. 발전소는 연료로 물을 끓여 터빈을 돌리고, 터빈에 연결된 발전기 안에서 자석과 코일이 돌며 전기가 만들어진다. 공급한 에너지가 모두 전기가 되지는 않는다.\n\n얻은 에너지 output과 공급한 에너지 input_energy를 받아 효율(%)을 돌려주는 함수 `efficiency(output, input_energy)`를 작성하시오. 반올림하지 않는다.\n\n효율(%) = output ÷ input_energy × 100\n\n예) `efficiency(380, 1000)`은 38.0, 60 W를 써서 빛을 3 W 내는 백열전구는 `efficiency(3, 60)`으로 5.0이다.\n\n생각해 보기: 백열전구에서 빛이 되지 못한 에너지는 주로 어떤 형태로 바뀔까?\n\n배울 것: 나눗셈과 실수, 함수\n성취기준: [10통과2-02-06]",
+      "starter": "def efficiency(output, input_energy):\n    ",
+      "tests": [
+        {
+          "input": "380, 1000",
+          "expected": "38.0",
+          "hidden": false
+        },
+        {
+          "input": "3, 60",
+          "expected": "5.0",
+          "hidden": false
+        },
+        {
+          "input": "3, 9",
+          "expected": "33.33333333333333",
+          "hidden": true
+        },
+        {
+          "input": "550, 1000",
+          "expected": "55.00000000000001",
+          "hidden": true
+        },
+        {
+          "input": "0, 50",
+          "expected": "0.0",
+          "hidden": true
+        },
+        {
+          "input": "45, 45",
+          "expected": "100.0",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "sci_bestplant",
+      "group": "통합과학 탐사",
+      "title": "9장 최고 효율 발전소",
+      "kind": "stdin",
+      "funcName": "",
+      "ignoreWs": false,
+      "desc": "발전 단지 안내판에 발전소마다 공급한 에너지와 만들어 낸 전기 에너지가 적혀 있다. 콘솔의 마지막 질문은 \"가장 효율이 높은 곳은 어디인가?\"\n\n첫 줄에 발전소 수 n이 주어지고, 다음 n줄에 `이름 얻은에너지 공급한에너지`가 공백으로 구분되어 주어진다. 이름에는 공백이 없고, 에너지는 정수이다.\n효율이 가장 높은 발전소의 이름과 효율을 `LNG복합화력 55.0%` 형식으로 출력하시오. 효율은 소수 첫째 자리까지 쓰고, 효율이 같으면 먼저 입력된 발전소를 출력한다.\n\n화면 마지막에 남은 메시지: \"다음 기록은 네가 써라.\"\n\n배울 것: 최댓값과 그 위치 찾기\n성취기준: [10통과2-02-05], [10통과2-02-06]",
+      "starter": "n = int(input())\n",
+      "tests": [
+        {
+          "input": "3\n석탄화력 380 1000\n원자력 330 1000\nLNG복합화력 550 1000",
+          "expected": "LNG복합화력 55.0%",
+          "hidden": false
+        },
+        {
+          "input": "2\n백열전구 3 60\nLED 3 9",
+          "expected": "LED 33.3%",
+          "hidden": false
+        },
+        {
+          "input": "1\n수력 850 1000",
+          "expected": "수력 85.0%",
+          "hidden": true
+        },
+        {
+          "input": "3\n가 1 3\n나 2 6\n다 1 4",
+          "expected": "가 33.3%",
+          "hidden": true
+        },
+        {
+          "input": "4\n태양광 22 100\n풍력 45 100\n원자력 33 100\n석탄화력 38 100",
+          "expected": "풍력 45.0%",
+          "hidden": true
+        }
+      ]
     }
   ]
 }
