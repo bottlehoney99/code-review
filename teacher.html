@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>수업 현황</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Nanum+Pen+Script&display=swap">
+<style>
+:root {
+  --paper: #eef2f1; --surface: #ffffff; --code-bg: #fbfcfc; --ink: #1c2631; --muted: #5a6875; --line: #d3dbde;
+  --grid: rgba(28, 38, 49, 0.045); --btn: #1f3a52; --btn-ink: #ffffff; --pen: #cf2f27;
+  --ok: #1d7448; --ok-bg: #e5f2ea; --bad: #ad2a22; --bad-bg: #f8e7e5; --warn: #8a5a00; --warn-bg: #f7eedb;
+  --font-ui: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-code: "JetBrains Mono", "D2Coding", "IBM Plex Sans KR", "Malgun Gothic", monospace;
+  --font-pen: "Nanum Pen Script", "IBM Plex Sans KR", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171c; --surface: #1a2128; --code-bg: #0f1418; --ink: #e4e9ed; --muted: #95a3af; --line: #2b353f;
+    --grid: rgba(228, 233, 237, 0.035); --btn: #d9e4ec; --btn-ink: #12171c; --pen: #ff6d60;
+    --ok: #63c991; --ok-bg: #173126; --bad: #ff8278; --bad-bg: #3a1d1b; --warn: #e8b85c; --warn-bg: #33291a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171c; --surface: #1a2128; --code-bg: #0f1418; --ink: #e4e9ed; --muted: #95a3af; --line: #2b353f;
+  --grid: rgba(228, 233, 237, 0.035); --btn: #d9e4ec; --btn-ink: #12171c; --pen: #ff6d60;
+  --ok: #63c991; --ok-bg: #173126; --bad: #ff8278; --bad-bg: #3a1d1b; --warn: #e8b85c; --warn-bg: #33291a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body {
+  margin: 0; padding: 0 16px 48px; color: var(--ink); font-family: var(--font-ui); line-height: 1.55;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.top { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 18px 0 14px; border-bottom: 2px solid var(--ink); }
+.brand { font-weight: 700; font-size: 1.25rem; margin-right: auto; }
+.brand small { font-weight: 400; color: var(--muted); font-size: 0.85rem; margin-left: 8px; }
+.seg { display: flex; border: 1px solid var(--ink); }
+.seg button { background: transparent; border: 0; padding: 5px 12px; cursor: pointer; font-size: 0.9rem; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.live { font-size: 0.82rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); display: inline-block; }
+.live.off i { background: var(--muted); }
+.live.err i { background: var(--bad); }
+.btn { border: 1px solid var(--ink); background: var(--surface); padding: 6px 14px; cursor: pointer; }
+.btn:hover { background: var(--paper); }
+.btn.primary { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); font-weight: 500; }
+.btn.small { padding: 3px 10px; font-size: 0.82rem; }
+.btn:disabled { opacity: .5; cursor: progress; }
+
+.login { max-width: 400px; margin: 80px auto 0; background: var(--surface); border: 1px solid var(--ink); padding: 26px; position: relative; }
+.login::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--pen); }
+.login h1 { font-size: 1.3rem; margin: 0 0 6px; }
+.login p { color: var(--muted); font-size: 0.9rem; margin: 0 0 14px; }
+.login form { display: flex; gap: 8px; }
+.login input { flex: 1; min-width: 0; padding: 6px 10px; border: 1px solid var(--ink); background: var(--code-bg); font-family: var(--font-code); }
+.login .msg { color: var(--bad); font-size: 0.85rem; min-height: 1.4em; margin: 10px 0 0; }
+
+.board { max-width: 1280px; margin: 0 auto; padding-top: 18px; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 26px; }
+.board > section { min-width: 0; }
+h2.sec { font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; }
+h2.sec .right { margin-left: auto; letter-spacing: 0; font-size: 0.8rem; }
+.sumline { display: flex; gap: 22px; flex-wrap: wrap; margin: 0 0 14px; }
+.sumline div { font-size: 0.82rem; color: var(--muted); }
+.sumline b { display: block; font-size: 1.7rem; color: var(--ink); font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+
+table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); font-size: 0.9rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 0.75rem; font-weight: 500; color: var(--muted); background: var(--paper); white-space: nowrap; }
+th button { background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font-size: inherit; }
+th button[aria-sort="descending"]::after { content: " ↓"; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.stu { cursor: pointer; }
+tr.stu:hover td { background: var(--paper); }
+tr.stu[aria-selected="true"] td { background: var(--paper); }
+tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pen); }
+.code { font-family: var(--font-code); font-weight: 600; letter-spacing: 0.06em; }
+.nm { display: block; font-size: 0.8rem; color: var(--muted); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; vertical-align: middle; }
+.idle { color: var(--muted); }
+.res-ok { color: var(--ok); }
+.res-bad { color: var(--bad); }
+.last { font-size: 0.85rem; }
+.last small { color: var(--muted); margin-left: 4px; }
+
+.bar { display: inline-block; width: 70px; height: 7px; background: var(--line); vertical-align: middle; position: relative; margin-right: 6px; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ok); }
+.stuck td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+.pt { font-size: 0.86rem; }
+.pt small { display: block; color: var(--muted); font-family: var(--font-code); font-size: 0.72rem; }
+
+.feed { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); font-size: 0.85rem; max-height: 300px; overflow: auto; }
+.feed li { padding: 5px 10px; border-bottom: 1px solid var(--line); display: flex; gap: 8px; align-items: baseline; }
+.feed time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.78rem; margin-left: auto; white-space: nowrap; }
+
+.detail { grid-column: 1 / -1; background: var(--surface); border: 1px solid var(--ink); padding: 18px 20px; }
+.detail h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.detail h3 .nmin { font-size: 0.85rem; font-weight: 400; }
+.detail h3 .nmin input { border: 0; border-bottom: 1px dashed var(--line); background: transparent; padding: 0 2px; width: 9em; }
+.detail .tools { display: flex; gap: 10px; align-items: center; margin: 10px 0 14px; flex-wrap: wrap; font-size: 0.85rem; }
+.dp { border-top: 1px solid var(--line); padding: 10px 0; }
+.dp-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.dp-head .t { font-weight: 500; }
+.dp-head .meta { color: var(--muted); font-size: 0.8rem; }
+.marks { display: inline-flex; gap: 3px; vertical-align: middle; }
+.marks i { width: 11px; height: 11px; display: inline-block; border: 1px solid var(--line); }
+.marks i.pass { background: var(--ok); border-color: var(--ok); }
+.marks i.wrong { background: var(--bad); border-color: var(--bad); }
+.marks i.err { background: var(--warn); border-color: var(--warn); }
+.marks i.tle { background: repeating-linear-gradient(45deg, var(--bad) 0 2px, transparent 2px 4px); border-color: var(--bad); }
+.dp pre { margin: 8px 0 0; background: var(--code-bg); border: 1px solid var(--line); padding: 10px 12px; font-family: var(--font-code); font-size: 0.82rem; white-space: pre; overflow: auto; max-height: 340px; }
+.dp .errm { font-size: 0.82rem; color: var(--bad); margin-top: 6px; white-space: pre-wrap; }
+.pen { font-family: var(--font-pen); color: var(--pen); font-size: 1.2rem; line-height: 1; }
+.note { color: var(--muted); font-size: 0.85rem; }
+.legend { font-size: 0.78rem; color: var(--muted); display: inline-flex; gap: 10px; align-items: center; }
+.legend .marks { margin-right: 2px; }
+
+@media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+  "use strict";
+  var SB_URL = "https://bxydptizntolzhaonbgj.supabase.co";
+  var SB_KEY = "sb_publishable_hQkfigCuI2xF9rh6vqToBg_QY1QEpK7";
+  var POLL_MS = 5000;
+
+  var S = { key: null, period: "today", data: null, problems: {}, order: [], sel: null, detail: null, onlyWrong: true,
+            sortStu: "code", sortProb: "stuck", openCode: {}, timer: null, live: "off", lastAt: null };
+  try { S.key = sessionStorage.getItem("tkey"); } catch (e) {}
+  try { S.period = localStorage.getItem("tperiod") || "today"; } catch (e) {}
+  var names = {};
+  try { names = JSON.parse(localStorage.getItem("tnames") || "{}") || {}; } catch (e) {}
+  function saveNames() { try { localStorage.setItem("tnames", JSON.stringify(names)); } catch (e) {} }
+
+  var app = document.getElementById("app");
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function h(html) { var t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+  function rpc(name, args) {
+    var hd = { "Content-Type": "application/json", apikey: SB_KEY };
+    if (SB_KEY.indexOf("eyJ") === 0) hd.Authorization = "Bearer " + SB_KEY;
+    return fetch(SB_URL + "/rest/v1/rpc/" + name, { method: "POST", headers: hd, body: JSON.stringify(args || {}) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) { var e = new Error(j && j.message || ("http " + r.status)); e.code = j && j.code; throw e; } return j; }); });
+  }
+  function since() {
+    var d = new Date();
+    if (S.period === "today") { d.setHours(0, 0, 0, 0); return d.toISOString(); }
+    if (S.period === "week") { var day = (d.getDay() + 6) % 7; d.setDate(d.getDate() - day); d.setHours(0, 0, 0, 0); return d.toISOString(); }
+    return null;
+  }
+  function ago(iso) {
+    if (!iso) return "";
+    var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 60) return "방금";
+    if (s < 3600) return Math.floor(s / 60) + "분 전";
+    var d = new Date(iso), now = new Date();
+    var hm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    if (d.toDateString() === now.toDateString()) return hm;
+    return (d.getMonth() + 1) + "/" + d.getDate() + " " + hm;
+  }
+  function ptitle(id) { var p = S.problems[id]; return p ? p.title : id; }
+  function pnum(id) { var i = S.order.indexOf(id); return i < 0 ? "" : String(i + 1).padStart(2, "0"); }
+  function label(code) { return names[code] ? esc(names[code]) : ""; }
+
+  fetch("problems.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+    (d.problems || []).forEach(function (p) { S.problems[p.id] = p; S.order.push(p.id); });
+    if (S.data) draw();
+  }).catch(function () {});
+
+  // ---------- 로그인 ----------
+  function drawLogin(msg) {
+    app.innerHTML = "";
+    var box = h('<div class="login"><h1>수업 현황</h1><p>교사 비밀번호를 입력하세요. 이 창을 닫으면 다시 물어봅니다.</p>' +
+      '<form><input type="password" autocomplete="current-password" aria-label="교사 비밀번호"><button class="btn primary" type="submit">들어가기</button></form><p class="msg" role="alert"></p></div>');
+    var inp = box.querySelector("input"), m = box.querySelector(".msg"), b = box.querySelector("button");
+    if (msg) m.textContent = msg;
+    box.querySelector("form").addEventListener("submit", function (e) {
+      e.preventDefault(); b.disabled = true; m.textContent = "";
+      rpc("teacher_login", { p_key: inp.value }).then(function (ok) {
+        b.disabled = false;
+        if (!ok) { m.textContent = "비밀번호가 맞지 않습니다."; inp.select(); return; }
+        S.key = inp.value; try { sessionStorage.setItem("tkey", S.key); } catch (e) {}
+        start();
+      }).catch(function () { b.disabled = false; m.textContent = "서버에 연결하지 못했습니다."; });
+    });
+    app.appendChild(box);
+    inp.focus();
+  }
+
+  // ---------- 불러오기 ----------
+  function poll() {
+    var sc = since();
+    var jobs = [rpc("teacher_overview", { p_key: S.key, p_since: sc })];
+    if (S.sel) jobs.push(rpc("teacher_student", { p_key: S.key, p_code: S.sel, p_since: sc }));
+    return Promise.all(jobs).then(function (r) {
+      S.data = r[0]; S.lastAt = new Date();
+      if (S.sel) S.detail = r[1];
+      S.live = "on"; draw();
+    }).catch(function (e) {
+      if (e && e.code === "28000") { stop(); S.key = null; try { sessionStorage.removeItem("tkey"); } catch (x) {} drawLogin("비밀번호가 바뀌었거나 맞지 않습니다."); return; }
+      S.live = "err"; drawLive();
+    });
+  }
+  function start() { stop(); poll(); S.timer = setInterval(function () { if (!document.hidden) poll(); }, POLL_MS); }
+  function stop() { if (S.timer) clearInterval(S.timer); S.timer = null; }
+
+  // ---------- 화면 ----------
+  var top, board, liveEl;
+  function drawLive() {
+    if (!liveEl) return;
+    liveEl.className = "live" + (S.live === "err" ? " err" : S.timer ? "" : " off");
+    liveEl.lastChild.textContent = S.live === "err" ? "연결 끊김, 다시 시도 중" :
+      (S.timer ? "5초마다 갱신" : "멈춤") + (S.lastAt ? " · " + S.lastAt.toLocaleTimeString("ko-KR", { hour12: false }) : "");
+  }
+  function drawTop() {
+    top = h('<header class="top"><div class="brand">파이썬 실험실<small>수업 현황</small></div>' +
+      '<div class="seg" role="group" aria-label="기간"><button data-p="today">오늘</button><button data-p="week">이번 주</button><button data-p="all">전체</button></div>' +
+      '<span class="live"><i></i><span></span></span>' +
+      '<button class="btn small" id="pausebtn"></button><button class="btn small" id="csvbtn">CSV로 받기</button></header>');
+    top.querySelectorAll(".seg button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.p === S.period));
+      b.addEventListener("click", function () { S.period = b.dataset.p; try { localStorage.setItem("tperiod", S.period); } catch (e) {} S.detail = null; drawTopState(); poll(); });
+    });
+    top.querySelector("#pausebtn").addEventListener("click", function () { if (S.timer) stop(); else start(); drawTopState(); });
+    top.querySelector("#csvbtn").addEventListener("click", downloadCsv);
+    liveEl = top.querySelector(".live");
+    drawTopState();
+  }
+  function drawTopState() {
+    top.querySelectorAll(".seg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.p === S.period)); });
+    top.querySelector("#pausebtn").textContent = S.timer ? "멈추기" : "다시 갱신";
+    drawLive();
+  }
+
+  function draw() {
+    if (!top) { app.innerHTML = ""; drawTop(); app.appendChild(top); board = h('<div class="board"></div>'); app.appendChild(board); }
+    drawLive();
+    var d = S.data; if (!d) return;
+    var scrollY = window.scrollY;
+    var active = document.activeElement && document.activeElement.id === "nmedit";
+    if (active) return; // 이름 고치는 중에는 다시 그리지 않음
+    board.innerHTML = "";
+
+    // 왼쪽: 학생
+    var left = h('<section></section>');
+    var studs = d.students.slice();
+    var nowMs = Date.now();
+    var activeN = studs.filter(function (s) { return s.last_at && nowMs - new Date(s.last_at).getTime() < 3 * 60000; }).length;
+    var started = studs.filter(function (s) { return s.submits > 0; }).length;
+    var solvedSum = studs.reduce(function (a, s) { return a + s.solved; }, 0);
+    left.appendChild(h('<div class="sumline"><div><b>' + activeN + '</b>최근 3분 안에 제출</div><div><b>' + started + ' / ' + studs.length + '</b>한 번이라도 제출</div>' +
+      '<div><b>' + (started ? (solvedSum / started).toFixed(1) : "0") + '</b>제출한 학생 1명당 다 맞힌 문제</div></div>'));
+    var sorters = {
+      code: function (a, b) {
+        var na = names[a.code], nb = names[b.code];
+        if (na && nb) return na.localeCompare(nb, "ko");
+        if (na || nb) return na ? -1 : 1;
+        return a.code < b.code ? -1 : a.code > b.code ? 1 : 0;
+      },
+      solved: function (a, b) { return b.solved - a.solved || b.tried - a.tried; },
+      recent: function (a, b) { return (b.last_at || "").localeCompare(a.last_at || ""); }
+    };
+    studs.sort(sorters[S.sortStu]);
+    var tbl = h('<table><thead><tr><th><button data-s="code">학생</button></th><th class="num"><button data-s="solved">다 맞힘</button></th><th class="num">시도</th><th class="num">제출</th><th><button data-s="recent">마지막 제출</button></th></tr></thead><tbody></tbody></table>');
+    tbl.querySelectorAll("th button").forEach(function (b) {
+      if (b.dataset.s === S.sortStu) b.setAttribute("aria-sort", "descending");
+      b.addEventListener("click", function () { S.sortStu = b.dataset.s; draw(); });
+    });
+    var tb = tbl.querySelector("tbody");
+    studs.forEach(function (s) {
+      var recent = s.last_at && nowMs - new Date(s.last_at).getTime() < 3 * 60000;
+      var last = s.last_problem ? '<span class="last">' + pnum(s.last_problem) + ' ' + esc(ptitle(s.last_problem)) + ' <span class="' + (s.last_pass ? "res-ok" : "res-bad") + '">' + (s.last_pass ? "맞음" : "틀림") + '</span><small>' + ago(s.last_at) + '</small></span>' : '<span class="idle">아직 없음</span>';
+      var tr = h('<tr class="stu" tabindex="0"><td>' + (recent ? '<span class="dot" title="최근 3분 안에 제출"></span>' : '') + '<span class="code">' + esc(s.code) + '</span>' + (names[s.code] ? '<span class="nm">' + label(s.code) + '</span>' : '') + '</td>' +
+        '<td class="num">' + s.solved + '</td><td class="num">' + s.tried + '</td><td class="num">' + s.submits + '</td><td>' + last + '</td></tr>');
+      tr.setAttribute("aria-selected", String(S.sel === s.code));
+      function pick() { S.sel = S.sel === s.code ? null : s.code; S.detail = null; draw(); if (S.sel) poll(); }
+      tr.addEventListener("click", pick);
+      tr.addEventListener("keydown", function (e) { if (e.key === "Enter") pick(); });
+      tb.appendChild(tr);
+    });
+    left.insertBefore(h('<h2 class="sec">학생별 진행<span class="right note">줄을 누르면 문제별 기록과 코드가 열립니다</span></h2>'), left.firstChild);
+    left.appendChild(tbl);
+
+    // 오른쪽: 문제 + 최근 제출
+    var right = h('<section></section>');
+    var probs = d.problems.slice();
+    var sortsP = {
+      stuck: function (a, b) { return (b.tried - b.solved) - (a.tried - a.solved) || b.tried - a.tried; },
+      num: function (a, b) { return S.order.indexOf(a.problem_id) - S.order.indexOf(b.problem_id); }
+    };
+    probs.sort(sortsP[S.sortProb]);
+    right.appendChild(h('<h2 class="sec">문제별<span class="right"><span class="seg" style="display:inline-flex"><button data-o="stuck">많이 막힌 순</button><button data-o="num">번호 순</button></span></span></h2>'));
+    right.querySelectorAll("[data-o]").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.o === S.sortProb));
+      b.style.fontSize = "0.78rem"; b.style.padding = "2px 8px";
+      b.addEventListener("click", function () { S.sortProb = b.dataset.o; draw(); });
+    });
+    if (!probs.length) right.appendChild(h('<p class="note">이 기간에 제출된 문제가 없습니다.</p>'));
+    else {
+      var pt = h('<table><thead><tr><th>문제</th><th class="num">시도</th><th>다 맞힌 학생</th></tr></thead><tbody></tbody></table>');
+      probs.forEach(function (p) {
+        var rate = p.tried ? p.solved / p.tried : 0;
+        var tr = h('<tr' + (p.tried - p.solved >= 3 && rate < 0.5 ? ' class="stuck"' : '') + '><td class="pt">' + (pnum(p.problem_id) ? pnum(p.problem_id) + ' ' : '') + esc(ptitle(p.problem_id)) + '<small>' + esc(p.problem_id) + '</small></td>' +
+          '<td class="num">' + p.tried + '명</td><td><span class="bar"><i style="width:' + Math.round(rate * 100) + '%"></i></span>' + p.solved + '명</td></tr>');
+        pt.querySelector("tbody").appendChild(tr);
+      });
+      right.appendChild(pt);
+    }
+    right.appendChild(h('<h2 class="sec" style="margin-top:22px">최근 제출</h2>'));
+    var feed = h('<ul class="feed"></ul>');
+    if (!d.feed.length) feed.appendChild(h('<li class="note">아직 제출이 없습니다.</li>'));
+    d.feed.forEach(function (f) {
+      var ok = f.passed === f.total;
+      feed.appendChild(h('<li><span class="code">' + esc(f.code) + '</span>' + (names[f.code] ? '<span class="note">' + label(f.code) + '</span>' : '') +
+        '<span>' + esc(ptitle(f.problem_id)) + '</span><span class="' + (ok ? 'res-ok' : 'res-bad') + '">' + f.passed + '/' + f.total + '</span><time>' + ago(f.created_at) + '</time></li>'));
+    });
+    right.appendChild(feed);
+
+    board.appendChild(left); board.appendChild(right);
+    if (S.sel) board.appendChild(drawDetail());
+    window.scrollTo(0, scrollY);
+  }
+
+  function drawDetail() {
+    var box = h('<section class="detail" aria-live="polite"><h3><span class="code">' + esc(S.sel) + '</span>' +
+      '<span class="nmin note">이름 메모 <input id="nmedit" placeholder="이 컴퓨터에만 저장"></span>' +
+      '<button class="btn small" style="margin-left:auto" id="closebtn">닫기</button></h3>' +
+      '<div class="tools"><label><input type="checkbox" id="onlywrong"> 아직 다 못 맞힌 문제만</label>' +
+      '<span class="legend"><span class="marks"><i class="pass"></i></span>통과 <span class="marks"><i class="wrong"></i></span>틀림 <span class="marks"><i class="err"></i></span>오류 <span class="marks"><i class="tle"></i></span>시간 초과</span></div><div class="list"></div></section>');
+    var nm = box.querySelector("#nmedit");
+    nm.value = names[S.sel] || "";
+    nm.addEventListener("change", function () { var v = nm.value.trim(); if (v) names[S.sel] = v; else delete names[S.sel]; saveNames(); nm.blur(); draw(); });
+    nm.addEventListener("keydown", function (e) { if (e.key === "Enter") nm.dispatchEvent(new Event("change")); });
+    box.querySelector("#closebtn").addEventListener("click", function () { S.sel = null; S.detail = null; draw(); });
+    var cb = box.querySelector("#onlywrong");
+    cb.checked = S.onlyWrong;
+    cb.addEventListener("change", function () { S.onlyWrong = cb.checked; draw(); });
+    var list = box.querySelector(".list");
+    if (!S.detail) { list.appendChild(h('<p class="note">불러오는 중…</p>')); return box; }
+    var rows = S.detail.filter(function (r) { return !S.onlyWrong || !r.ever_pass; });
+    if (!rows.length) list.appendChild(h('<p class="note">' + (S.detail.length ? "이 기간에 제출한 문제는 모두 맞혔습니다." : "이 기간에 제출한 기록이 없습니다.") + '</p>'));
+    rows.forEach(function (r) {
+      var marks = (r.cases || []).map(function (c) { return '<i class="' + esc(c.s) + '"></i>'; }).join("");
+      var firstBad = (r.cases || []).filter(function (c) { return c.s !== "pass" && (c.e || c.a); })[0];
+      var el = h('<div class="dp"><div class="dp-head"><span class="t">' + (pnum(r.problem_id) ? pnum(r.problem_id) + ' ' : '') + esc(ptitle(r.problem_id)) + '</span>' +
+        '<span class="marks">' + marks + '</span><span class="' + (r.all_pass ? 'res-ok' : 'res-bad') + '">' + r.passed + ' / ' + r.total + '</span>' +
+        (r.ever_pass && !r.all_pass ? '<span class="note">전에는 맞혔음</span>' : '') +
+        '<span class="meta">제출 ' + r.attempts + '번 · 마지막 ' + ago(r.last_at) + '</span>' +
+        (r.ever_pass ? '<span class="pen">맞음</span>' : '') +
+        '<button class="btn small" style="margin-left:auto">코드 보기</button></div></div>');
+      if (firstBad && firstBad.e) el.appendChild(h('<div class="errm">' + esc(firstBad.e) + '</div>'));
+      var key = S.sel + "|" + r.problem_id;
+      var pre = document.createElement("pre"); pre.textContent = r.source || "(빈 코드)"; pre.hidden = !S.openCode[key];
+      el.appendChild(pre);
+      var b = el.querySelector("button");
+      b.textContent = pre.hidden ? "코드 보기" : "코드 접기";
+      b.addEventListener("click", function () { pre.hidden = !pre.hidden; if (pre.hidden) delete S.openCode[key]; else S.openCode[key] = 1; b.textContent = pre.hidden ? "코드 보기" : "코드 접기"; });
+      list.appendChild(el);
+    });
+    return box;
+  }
+
+  function downloadCsv() {
+    var d = S.data; if (!d) return;
+    var lines = [["학생 코드", "이름 메모", "다 맞힌 문제 수", "시도한 문제 수", "제출 수", "마지막 제출"].join(",")];
+    d.students.forEach(function (s) {
+      lines.push([s.code, '"' + String(names[s.code] || "").replace(/"/g, '""') + '"', s.solved, s.tried, s.submits, s.last_at ? new Date(s.last_at).toLocaleString("ko-KR", { hour12: false }) : ""].join(","));
+    });
+    var blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    var t = new Date(); a.download = "수업현황_" + t.getFullYear() + String(t.getMonth() + 1).padStart(2, "0") + String(t.getDate()).padStart(2, "0") + ".csv";
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && S.timer) poll(); });
+  if (S.key) start(); else drawLogin();
+})();
+</script>
+</body>
+</html>
