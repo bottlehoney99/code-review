@@ -269,6 +269,15 @@ table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); widt
 .solved button { background: var(--surface); border: 1px solid var(--line); padding: 3px 9px; cursor: pointer; font-size: 0.85rem; display: inline-flex; gap: 6px; align-items: baseline; }
 .solved button:hover { border-color: var(--ink); }
 .solved .pn { font-family: var(--font-code); font-size: 0.75rem; color: var(--muted); }
+.solhint { font-size: 0.78rem; color: var(--muted); margin: -4px 0 8px; }
+.solved button[aria-expanded="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.solved button[aria-expanded="true"] .pn { color: inherit; }
+.solpanel { margin: -12px 0 26px; background: var(--surface); border: 1px solid var(--ink); border-left: 4px solid var(--ok); padding: 12px 14px; }
+.solhead { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.solhead .pn { font-family: var(--font-code); font-size: 0.8rem; color: var(--muted); }
+.solwhen { margin-left: auto; font-size: 0.8rem; color: var(--ok); }
+.solcode { margin: 10px 0 0; background: var(--code-bg); border: 1px solid var(--line); padding: 10px 12px; font-family: var(--font-code); font-size: 0.85rem; white-space: pre; overflow: auto; max-height: 360px; }
+.solpanel .actions { margin-top: 10px; }
 @media (max-width: 860px) { .me { grid-template-columns: 1fr; gap: 10px; } }
 
 .linkbtn { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 0.8rem; margin-left: 6px; }
@@ -327,7 +336,7 @@ table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); widt
     run.rec = "sending"; showRec(p, run);
     rpc("submit_result", item).then(function (ok) {
       run.rec = ok ? "ok" : "rejected"; showRec(p, run);
-      if (ok) ui.me = null;
+      if (ok) { ui.me = null; ui.solCache = {}; }
       if (ok) flushPending();
     }).catch(function () {
       var list = pendingList(); list.push(item); store("pending", JSON.stringify(list.slice(-50)));
@@ -388,6 +397,28 @@ table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); widt
         }).catch(function () { save.disabled = false; msg.textContent = "서버에 연결하지 못했습니다."; });
       });
       box.firstChild.hidden = true; box.appendChild(f); inp.focus(); inp.select();
+    });
+    return box;
+  }
+  function solPanel(pid, p, i) {
+    var box = h('<div class="solpanel"><div class="solhead"><span class="pn">' + String(i + 1).padStart(2, "0") + '</span><b>' + esc(p.title) + '</b><span class="solwhen"></span></div>' +
+      '<pre class="solcode">불러오는 중…</pre><div class="actions"><button type="button" class="btn small" data-a="go">문제로 가기</button>' +
+      '<button type="button" class="btn small" data-a="load" disabled>이 코드를 편집기에 불러오기</button><span class="status"></span></div></div>');
+    var pre = box.querySelector(".solcode"), loadBtn = box.querySelector('[data-a="load"]');
+    function fill(s) {
+      if (!s) { pre.textContent = "정답 코드를 찾지 못했습니다."; return; }
+      pre.textContent = s.source || "(빈 코드)";
+      box.querySelector(".solwhen").textContent = shortDate(s.at) + "에 맞힌 코드";
+      loadBtn.disabled = false;
+    }
+    if (ui.solCache[pid] !== undefined) fill(ui.solCache[pid]);
+    else rpc("my_solution", { p_code: ui.code, p_problem: pid }).then(function (s) { ui.solCache[pid] = s; if (ui.solOpen === pid) fill(s); })
+      .catch(function () { pre.textContent = "코드를 불러오지 못했습니다. 인터넷 연결을 확인하세요."; });
+    box.querySelector('[data-a="go"]').addEventListener("click", function () { goProblem(pid); });
+    loadBtn.addEventListener("click", function () {
+      var s = ui.solCache[pid];
+      if (!loadBtn.dataset.armed) { loadBtn.dataset.armed = "1"; loadBtn.textContent = "지금 편집기 코드를 덮어씁니다. 한 번 더 누르기"; return; }
+      store("draft:" + pid, (s && s.source) || ""); goProblem(pid);
     });
     return box;
   }
@@ -468,10 +499,13 @@ table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); widt
         var p = state.problems[idx[q.problem_id]];
         var li = document.createElement("li");
         var b = h('<button type="button" title="' + esc(shortDate(q.first_pass_at)) + ' 맞힘"><span class="pn">' + String(idx[q.problem_id] + 1).padStart(2, "0") + '</span>' + esc(p.title) + '</button>');
-        b.addEventListener("click", function () { goProblem(q.problem_id); });
+        b.setAttribute("aria-expanded", String(ui.solOpen === q.problem_id));
+        b.addEventListener("click", function () { ui.solOpen = ui.solOpen === q.problem_id ? null : q.problem_id; render(); });
         li.appendChild(b); sl.appendChild(li);
       });
+      right.appendChild(h('<p class="solhint">문제를 누르면 내가 맞힌 코드를 다시 볼 수 있습니다.</p>'));
       right.appendChild(sl);
+      if (ui.solOpen && idx[ui.solOpen] != null) right.appendChild(solPanel(ui.solOpen, state.problems[idx[ui.solOpen]], idx[ui.solOpen]));
     }
     box.appendChild(right);
     return box;
@@ -515,7 +549,7 @@ table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); widt
   try { state = JSON.parse(document.getElementById("state").textContent); } catch (e) { state = { problems: [] }; }
   if (!state.problems) state.problems = [];
 
-  var ui = { lvFilter: 0, mode: "student", current: state.problems[0] ? state.problems[0].id : null, canEdit: false, dirty: false, sample: null, artifact: null, results: {}, passed: {}, code: null, noRecord: false, view: "solve", me: null, meErr: false };
+  var ui = { lvFilter: 0, mode: "student", current: state.problems[0] ? state.problems[0].id : null, canEdit: false, dirty: false, sample: null, artifact: null, results: {}, passed: {}, code: null, noRecord: false, view: "solve", me: null, meErr: false, solOpen: null, solCache: {} };
   (function () { var c = store("stucode"); if (c && /^[A-Z0-9]{5}$/.test(c)) ui.code = c; })();
   var app = document.getElementById("app");
   (function () { try { var f = parseInt(localStorage.getItem("lvfilter"), 10); if (f >= 1 && f <= 5) ui.lvFilter = f; } catch (e) {} })();
@@ -696,7 +730,7 @@ table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); widt
       who.querySelector("button").addEventListener("click", function () {
         var b = this;
         if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "한 번 더 누르면 바뀝니다"; return; }
-        ui.code = null; store("stucode", ""); ui.passed = {}; ui.results = {}; ui.me = null; ui.view = "solve"; render();
+        ui.code = null; store("stucode", ""); ui.passed = {}; ui.results = {}; ui.me = null; ui.view = "solve"; ui.solOpen = null; ui.solCache = {}; render();
       });
       top.insertBefore(who, top.querySelector(".modes"));
       var views = h('<div class="views" role="group" aria-label="화면"><button type="button" data-v="solve">문제 풀기</button><button type="button" data-v="me">내 기록</button></div>');

@@ -116,6 +116,11 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
 .marks i.err { background: var(--warn); border-color: var(--warn); }
 .marks i.tle { background: repeating-linear-gradient(45deg, var(--bad) 0 2px, transparent 2px 4px); border-color: var(--bad); }
 .dp pre { margin: 8px 0 0; background: var(--code-bg); border: 1px solid var(--line); padding: 10px 12px; font-family: var(--font-code); font-size: 0.82rem; white-space: pre; overflow: auto; max-height: 340px; }
+.codebtns { margin-left: auto; display: inline-flex; gap: 6px; }
+.codebtn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.codecap { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+.codecap.ok { color: var(--ok); }
+.dp pre.passcode { border-left: 3px solid var(--ok); }
 .dp .errm { font-size: 0.82rem; color: var(--bad); margin-top: 6px; white-space: pre-wrap; }
 .pen { font-family: var(--font-pen); color: var(--pen); font-size: 1.2rem; line-height: 1; }
 .note { color: var(--muted); font-size: 0.85rem; }
@@ -365,14 +370,33 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
         (r.ever_pass && !r.all_pass ? '<span class="note">전에는 맞혔음</span>' : '') +
         '<span class="meta">제출 ' + r.attempts + '번 · 마지막 ' + ago(r.last_at) + '</span>' +
         (r.ever_pass ? '<span class="pen">맞음</span>' : '') +
-        '<button class="btn small" style="margin-left:auto">코드 보기</button></div></div>');
+        '<span class="codebtns"></span></div></div>');
       if (firstBad && firstBad.e) el.appendChild(h('<div class="errm">' + esc(firstBad.e) + '</div>'));
-      var key = S.sel + "|" + r.problem_id;
-      var pre = document.createElement("pre"); pre.textContent = r.source || "(빈 코드)"; pre.hidden = !S.openCode[key];
-      el.appendChild(pre);
-      var b = el.querySelector("button");
-      b.textContent = pre.hidden ? "코드 보기" : "코드 접기";
-      b.addEventListener("click", function () { pre.hidden = !pre.hidden; if (pre.hidden) delete S.openCode[key]; else S.openCode[key] = 1; b.textContent = pre.hidden ? "코드 보기" : "코드 접기"; });
+      // 마지막 제출이 정답이면 버튼 하나, 아니면 '마지막 코드'와 '정답 코드'를 따로
+      var views = [];
+      if (r.all_pass) views.push({ k: "pass", label: "정답 코드", src: r.source, note: "마지막에 낸 코드이자 정답 코드 · " + ago(r.last_at) });
+      else {
+        views.push({ k: "last", label: "마지막 코드", src: r.source, note: "마지막에 낸 코드 (" + r.passed + " / " + r.total + ") · " + ago(r.last_at) });
+        if (r.pass_source != null) views.push({ k: "pass", label: "정답 코드", src: r.pass_source, note: "다 맞혔던 코드 · " + ago(r.pass_at) });
+      }
+      var holder = el.querySelector(".codebtns");
+      var cap = h('<div class="codecap" hidden></div>');
+      var pre = document.createElement("pre"); pre.hidden = true;
+      el.appendChild(cap); el.appendChild(pre);
+      var btns = [];
+      function show(v) {
+        var key = S.sel + "|" + r.problem_id;
+        if (!v) { pre.hidden = true; cap.hidden = true; delete S.openCode[key]; }
+        else { pre.textContent = v.src || "(빈 코드)"; pre.className = v.k === "pass" ? "passcode" : ""; cap.textContent = v.note; cap.className = "codecap" + (v.k === "pass" ? " ok" : ""); pre.hidden = false; cap.hidden = false; S.openCode[key] = v.k; }
+        btns.forEach(function (x) { x.b.setAttribute("aria-pressed", String(!!v && x.v.k === v.k)); });
+      }
+      views.forEach(function (v) {
+        var b = h('<button class="btn small codebtn">' + v.label + '</button>');
+        b.addEventListener("click", function () { show(b.getAttribute("aria-pressed") === "true" ? null : v); });
+        holder.appendChild(b); btns.push({ b: b, v: v });
+      });
+      var openK = S.openCode[S.sel + "|" + r.problem_id];
+      show(views.filter(function (v) { return v.k === openK; })[0] || null);
       list.appendChild(el);
     });
     return box;
