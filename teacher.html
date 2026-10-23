@@ -279,7 +279,7 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
     studs.forEach(function (s) {
       var recent = s.last_at && nowMs - new Date(s.last_at).getTime() < 3 * 60000;
       var last = s.last_problem ? '<span class="last">' + pnum(s.last_problem) + ' ' + esc(ptitle(s.last_problem)) + ' <span class="' + (s.last_pass ? "res-ok" : "res-bad") + '">' + (s.last_pass ? "맞음" : "틀림") + '</span><small>' + ago(s.last_at) + '</small></span>' : '<span class="idle">아직 없음</span>';
-      var tr = h('<tr class="stu" tabindex="0"><td>' + (recent ? '<span class="dot" title="최근 3분 안에 제출"></span>' : '') + '<span class="code">' + esc(s.code) + '</span>' + (names[s.code] ? '<span class="nm">' + label(s.code) + '</span>' : '') + '</td>' +
+      var tr = h('<tr class="stu" tabindex="0"><td>' + (recent ? '<span class="dot" title="최근 3분 안에 제출"></span>' : '') + '<span class="code">' + esc(s.code) + '</span><span class="nm">' + (names[s.code] ? label(s.code) + ' · ' : '') + esc(s.alias || '') + '</span></td>' +
         '<td class="num">' + s.solved + '</td><td class="num">' + s.tried + '</td><td class="num">' + s.submits + '</td><td>' + last + '</td></tr>');
       tr.setAttribute("aria-selected", String(S.sel === s.code));
       function pick() { S.sel = S.sel === s.code ? null : s.code; S.detail = null; draw(); if (S.sel) poll(); }

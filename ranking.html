@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>다 맞힌 문제 순위</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Nanum+Pen+Script&display=swap">
+<style>
+:root {
+  --paper: #eef2f1; --surface: #ffffff; --ink: #1c2631; --muted: #5a6875; --line: #d3dbde;
+  --grid: rgba(28, 38, 49, 0.045); --pen: #cf2f27;
+  --font-ui: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-pen: "Nanum Pen Script", "IBM Plex Sans KR", "Malgun Gothic", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --paper: #12171c; --surface: #1a2128; --ink: #e4e9ed; --muted: #95a3af; --line: #2b353f; --grid: rgba(228, 233, 237, 0.035); --pen: #ff6d60; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --paper: #12171c; --surface: #1a2128; --ink: #e4e9ed; --muted: #95a3af; --line: #2b353f; --grid: rgba(228, 233, 237, 0.035); --pen: #ff6d60; color-scheme: dark; }
+* { box-sizing: border-box; }
+html { font-size: 16px; }
+body {
+  margin: 0; padding: 0 16px 40px; color: var(--ink); font-family: var(--font-ui); line-height: 1.5; min-height: 100vh;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.page { max-width: 980px; margin: 0 auto; }
+header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 22px 0 14px; border-bottom: 2px solid var(--ink); }
+header h1 { margin: 0; font-size: clamp(1.4rem, 3.4vw, 2.2rem); letter-spacing: -0.02em; margin-right: auto; }
+header .when { color: var(--muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+header a { color: var(--muted); font-size: 0.85rem; }
+
+ol { list-style: none; margin: 0; padding: 0; }
+.row { display: grid; grid-template-columns: clamp(64px, 12vw, 140px) minmax(0, 1fr) auto; align-items: center; gap: clamp(10px, 3vw, 28px); padding: clamp(14px, 3vw, 28px) 0; border-bottom: 1px solid var(--line); }
+.place { position: relative; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.place span { position: relative; z-index: 1; }
+.place svg { position: absolute; inset: -18% -10%; width: 120%; height: 136%; overflow: visible; }
+.place svg path { fill: none; stroke: var(--pen); stroke-width: 3; stroke-linecap: round; }
+.alias { font-weight: 700; letter-spacing: -0.02em; min-width: 0; overflow-wrap: anywhere; }
+.alias small { display: block; font-weight: 400; color: var(--muted); font-size: max(0.8rem, 0.3em); letter-spacing: 0; margin-top: 6px; }
+.score { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.score b { font-weight: 700; }
+.score span { color: var(--muted); font-size: 0.45em; margin-left: 4px; }
+
+.r1 .place { font-size: clamp(3.6rem, 10vw, 7rem); }
+.r1 .alias { font-size: clamp(1.8rem, 5.6vw, 3.6rem); }
+.r1 .score { font-size: clamp(2.2rem, 6vw, 4rem); }
+.r2 .place, .r3 .place { font-size: clamp(2.4rem, 6.5vw, 4.4rem); }
+.r2 .alias, .r3 .alias { font-size: clamp(1.3rem, 3.6vw, 2.3rem); }
+.r2 .score, .r3 .score { font-size: clamp(1.6rem, 4vw, 2.6rem); }
+.r2 .place svg, .r3 .place svg { display: none; }
+.r1 .score b { color: var(--pen); }
+
+.empty { padding: 60px 0; color: var(--muted); font-size: 1.1rem; }
+.foot { color: var(--muted); font-size: 0.85rem; margin-top: 16px; }
+.pen-note { font-family: var(--font-pen); color: var(--pen); font-size: 1.5rem; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>다 맞힌 문제가 가장 많은 3명</h1>
+    <span class="when" id="when"></span>
+    <a href="./">문제 풀러 가기</a>
+  </header>
+  <ol id="list" aria-live="polite"></ol>
+  <p class="foot">모든 케이스를 통과한 문제만 셉니다. 개수가 같으면 그 개수에 먼저 도달한 사람이 위에 옵니다. 내 별명은 문제 화면의 '내 기록'에서 볼 수 있습니다.</p>
+</div>
+<script>
+(function () {
+  "use strict";
+  var SB_URL = "https://bxydptizntolzhaonbgj.supabase.co";
+  var SB_KEY = "sb_publishable_hQkfigCuI2xF9rh6vqToBg_QY1QEpK7";
+  var list = document.getElementById("list"), when = document.getElementById("when");
+  var CIRCLE = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M58 9C30 4 8 24 9 52c1 26 22 42 46 40 25-2 39-21 37-45C90 24 72 9 48 12"/></svg>';
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function reached(iso) {
+    var d = new Date(iso), n = new Date();
+    var hm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    return d.toDateString() === n.toDateString() ? "오늘 " + hm : (d.getMonth() + 1) + "월 " + d.getDate() + "일 " + hm;
+  }
+  var last = "";
+  function load() {
+    var hd = { "Content-Type": "application/json", apikey: SB_KEY };
+    fetch(SB_URL + "/rest/v1/rpc/ranking_top3", { method: "POST", headers: hd, body: "{}" })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (rows) {
+        when.textContent = new Date().toLocaleTimeString("ko-KR", { hour12: false }) + " 기준";
+        var key = JSON.stringify(rows);
+        if (key === last) return;
+        last = key;
+        if (!rows.length) { list.innerHTML = '<li class="empty">아직 다 맞힌 학생이 없습니다. <span class="pen-note">첫 번째 주인공은 누구?</span></li>'; return; }
+        list.innerHTML = rows.map(function (r) {
+          return '<li class="row r' + r.place + '"><div class="place"><span>' + r.place + '</span>' + (r.place === 1 ? CIRCLE : '') + '</div>' +
+            '<div class="alias">' + esc(r.alias) + '<small>' + reached(r.reached_at) + '에 ' + r.solved + '문제째 맞힘</small></div>' +
+            '<div class="score"><b>' + r.solved + '</b><span>문제</span></div></li>';
+        }).join("");
+      })
+      .catch(function () { when.textContent = "연결이 끊겼습니다. 다시 시도하는 중"; });
+  }
+  load();
+  setInterval(function () { if (!document.hidden) load(); }, 10000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) load(); });
+})();
+</script>
+</body>
+</html>
