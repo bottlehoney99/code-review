@@ -279,7 +279,7 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
     studs.forEach(function (s) {
       var recent = s.last_at && nowMs - new Date(s.last_at).getTime() < 3 * 60000;
       var last = s.last_problem ? '<span class="last">' + pnum(s.last_problem) + ' ' + esc(ptitle(s.last_problem)) + ' <span class="' + (s.last_pass ? "res-ok" : "res-bad") + '">' + (s.last_pass ? "맞음" : "틀림") + '</span><small>' + ago(s.last_at) + '</small></span>' : '<span class="idle">아직 없음</span>';
-      var tr = h('<tr class="stu" tabindex="0"><td>' + (recent ? '<span class="dot" title="최근 3분 안에 제출"></span>' : '') + '<span class="code">' + esc(s.code) + '</span><span class="nm">' + (names[s.code] ? label(s.code) + ' · ' : '') + esc(s.alias || '') + '</span></td>' +
+      var tr = h('<tr class="stu" tabindex="0"><td>' + (recent ? '<span class="dot" title="최근 3분 안에 제출"></span>' : '') + '<span class="code">' + esc(s.code) + '</span><span class="nm">' + [names[s.code] ? label(s.code) : '', esc(s.alias || '')].filter(Boolean).join(' · ') + '</span></td>' +
         '<td class="num">' + s.solved + '</td><td class="num">' + s.tried + '</td><td class="num">' + s.submits + '</td><td>' + last + '</td></tr>');
       tr.setAttribute("aria-selected", String(S.sel === s.code));
       function pick() { S.sel = S.sel === s.code ? null : s.code; S.detail = null; draw(); if (S.sel) poll(); }
@@ -333,6 +333,7 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
   function drawDetail() {
     var box = h('<section class="detail" aria-live="polite"><h3><span class="code">' + esc(S.sel) + '</span>' +
       '<span class="nmin note">이름 메모 <input id="nmedit" placeholder="이 컴퓨터에만 저장"></span>' +
+      '<span class="note" style="font-size:.85rem;font-weight:400">별명 <b id="alname"></b> <button class="btn small" id="aliasreset">원래 별명으로</button></span>' +
       '<button class="btn small" style="margin-left:auto" id="closebtn">닫기</button></h3>' +
       '<div class="tools"><label><input type="checkbox" id="onlywrong"> 아직 다 못 맞힌 문제만</label>' +
       '<span class="legend"><span class="marks"><i class="pass"></i></span>통과 <span class="marks"><i class="wrong"></i></span>틀림 <span class="marks"><i class="err"></i></span>오류 <span class="marks"><i class="tle"></i></span>시간 초과</span></div><div class="list"></div></section>');
@@ -340,6 +341,14 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
     nm.value = names[S.sel] || "";
     nm.addEventListener("change", function () { var v = nm.value.trim(); if (v) names[S.sel] = v; else delete names[S.sel]; saveNames(); nm.blur(); draw(); });
     nm.addEventListener("keydown", function (e) { if (e.key === "Enter") nm.dispatchEvent(new Event("change")); });
+    var me = (S.data && S.data.students || []).filter(function (x) { return x.code === S.sel; })[0];
+    box.querySelector("#alname").textContent = me && me.alias || "";
+    var rb = box.querySelector("#aliasreset");
+    rb.addEventListener("click", function () {
+      if (!rb.dataset.armed) { rb.dataset.armed = "1"; rb.textContent = "한 번 더 누르면 되돌립니다"; return; }
+      rb.disabled = true;
+      rpc("teacher_reset_alias", { p_key: S.key, p_code: S.sel }).then(function () { poll(); }).catch(function () { rb.disabled = false; rb.textContent = "실패, 다시 누르기"; delete rb.dataset.armed; });
+    });
     box.querySelector("#closebtn").addEventListener("click", function () { S.sel = null; S.detail = null; draw(); });
     var cb = box.querySelector("#onlywrong");
     cb.checked = S.onlyWrong;

@@ -33,7 +33,7 @@
 
 학생은 머리글의 **내 기록**에서 다 맞힌 문제 수, 난이도별 진행, 도장(첫 정답, 10·30·60·100문제, 어려움 이상 첫 정답, 한 번에 맞힌 문제 5개), 아직 못 맞힌 문제 목록을 봅니다.
 `ranking.html`은 다 맞힌 문제 수 상위 3명을 보여 주는 화면으로, 교실 화면에 띄워 두면 10초마다 갱신됩니다.
-순위에는 학생 코드 대신 코드마다 정해진 별명(예: 날쌘 고래)이 나옵니다. 코드를 추가할 때 별명도 함께 넣으려면 `insert into private.students(code, alias) values ('ABCDE', '씩씩한 해마');`처럼 실행합니다.
+순위에는 학생 코드 대신 코드마다 정해진 별명(예: 날쌘 고래)이 나옵니다. 학생은 '내 기록'에서 별명을 직접 바꿀 수 있습니다(2~10자, 한글·영어·숫자, 겹치는 별명과 욕설은 거절, 10분에 한 번). 현황판에서 학생을 열고 '원래 별명으로'를 누르면 처음 받은 별명으로 돌아갑니다. 코드를 추가할 때 별명도 함께 넣으려면 `insert into private.students(code, alias) values ('ABCDE', '씩씩한 해마');`처럼 실행합니다.
 
 - 표는 API에 드러나지 않는 `private` 스키마에 있고, 페이지는 `check_code`, `submit_result`, `my_progress`, `teacher_*` 함수로만 접근합니다.
 - 학생 코드를 추가하려면 Supabase SQL Editor에서 `insert into private.students(code) values ('ABCDE');`를 실행합니다.
