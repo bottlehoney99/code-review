@@ -116,6 +116,8 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
 .marks i.err { background: var(--warn); border-color: var(--warn); }
 .marks i.tle { background: repeating-linear-gradient(45deg, var(--bad) 0 2px, transparent 2px 4px); border-color: var(--bad); }
 .dp pre { margin: 8px 0 0; background: var(--code-bg); border: 1px solid var(--line); padding: 10px 12px; font-family: var(--font-code); font-size: 0.82rem; white-space: pre; overflow: auto; max-height: 340px; }
+.hidden-note { margin: 0 0 6px; }
+.linkish { background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; cursor: pointer; font-size: inherit; }
 .codebtns { margin-left: auto; display: inline-flex; gap: 6px; }
 .codebtn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .codecap { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
@@ -139,10 +141,11 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
   var SB_KEY = "sb_publishable_hQkfigCuI2xF9rh6vqToBg_QY1QEpK7";
   var POLL_MS = 5000;
 
-  var S = { key: null, period: "today", data: null, problems: {}, order: [], sel: null, detail: null, onlyWrong: true,
+  var S = { key: null, period: "today", data: null, problems: {}, order: [], sel: null, detail: null, onlyWrong: false,
             sortStu: "code", sortProb: "stuck", openCode: {}, timer: null, live: "off", lastAt: null };
   try { S.key = sessionStorage.getItem("tkey"); } catch (e) {}
   try { S.period = localStorage.getItem("tperiod") || "today"; } catch (e) {}
+  try { S.onlyWrong = localStorage.getItem("tonlywrong") === "1"; } catch (e) {}
   var names = {};
   try { names = JSON.parse(localStorage.getItem("tnames") || "{}") || {}; } catch (e) {}
   function saveNames() { try { localStorage.setItem("tnames", JSON.stringify(names)); } catch (e) {} }
@@ -357,11 +360,17 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
     box.querySelector("#closebtn").addEventListener("click", function () { S.sel = null; S.detail = null; draw(); });
     var cb = box.querySelector("#onlywrong");
     cb.checked = S.onlyWrong;
-    cb.addEventListener("change", function () { S.onlyWrong = cb.checked; draw(); });
+    cb.addEventListener("change", function () { S.onlyWrong = cb.checked; try { localStorage.setItem("tonlywrong", S.onlyWrong ? "1" : "0"); } catch (e) {} draw(); });
     var list = box.querySelector(".list");
     if (!S.detail) { list.appendChild(h('<p class="note">불러오는 중…</p>')); return box; }
     var rows = S.detail.filter(function (r) { return !S.onlyWrong || !r.ever_pass; });
-    if (!rows.length) list.appendChild(h('<p class="note">' + (S.detail.length ? "이 기간에 제출한 문제는 모두 맞혔습니다." : "이 기간에 제출한 기록이 없습니다.") + '</p>'));
+    var hiddenN = S.detail.length - rows.length;
+    if (!S.detail.length) list.appendChild(h('<p class="note">이 기간에 제출한 기록이 없습니다.</p>'));
+    else if (hiddenN) {
+      var hn = h('<p class="note hidden-note">맞힌 문제 ' + hiddenN + '개는 숨겨져 있습니다. <button type="button" class="linkish">모두 보기</button></p>');
+      hn.querySelector("button").addEventListener("click", function () { S.onlyWrong = false; try { localStorage.setItem("tonlywrong", "0"); } catch (e) {} draw(); });
+      list.appendChild(hn);
+    }
     rows.forEach(function (r) {
       var marks = (r.cases || []).map(function (c) { return '<i class="' + esc(c.s) + '"></i>'; }).join("");
       var firstBad = (r.cases || []).filter(function (c) { return c.s !== "pass" && (c.e || c.a); })[0];
