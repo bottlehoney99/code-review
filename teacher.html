@@ -217,10 +217,13 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
   function pnum(id) { var i = S.order.indexOf(id); return i < 0 ? "" : String(i + 1).padStart(2, "0"); }
   function label(code) { return names[code] ? esc(names[code]) : ""; }
 
-  fetch("problems.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
-    (d.problems || []).forEach(function (p) { S.problems[p.id] = p; S.order.push(p.id); });
+  function useProblems(list) {
+    S.problems = {}; S.order = [];
+    (list || []).forEach(function (p) { S.problems[p.id] = p; S.order.push(p.id); });
     if (S.data) draw();
-  }).catch(function () {});
+  }
+  function loadFile() { return fetch("problems.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) { useProblems(d.problems); }).catch(function () {}); }
+  rpc("get_problems", {}).then(function (d) { if (d && Array.isArray(d.problems)) useProblems(d.problems); else loadFile(); }).catch(loadFile);
 
   // ---------- 로그인 ----------
   function drawLogin(msg) {
@@ -275,7 +278,8 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
     top = h('<header class="top"><div class="brand">파이썬 실험실<small>수업 현황</small></div>' +
       '<div class="seg" role="group" aria-label="기간"><button data-p="today">오늘</button><button data-p="week">이번 주</button><button data-p="all">전체</button></div>' +
       '<span class="live"><i></i><span></span></span>' +
-      '<button class="btn small" id="pausebtn"></button><button class="btn small" id="csvbtn">CSV로 받기</button></header>');
+      '<button class="btn small" id="pausebtn"></button><button class="btn small" id="csvbtn">CSV로 받기</button>' +
+      '<a class="btn small" href="index.html#edit" style="text-decoration:none">문제 수정</a></header>');
     top.querySelectorAll(".seg button").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.p === S.period));
       b.addEventListener("click", function () { S.period = b.dataset.p; try { localStorage.setItem("tperiod", S.period); } catch (e) {} S.detail = null; S.history = null; drawTopState(); poll(); });
