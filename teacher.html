@@ -234,20 +234,27 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
     if (msg) m.textContent = msg;
     box.querySelector("form").addEventListener("submit", function (e) {
       e.preventDefault(); b.disabled = true; m.textContent = "";
-      rpc("teacher_login", { p_key: inp.value }).then(function (ok) {
+      rpc("teacher_login", { p_key: inp.value }).then(function (r) {
         b.disabled = false;
-        if (!ok) { m.textContent = "비밀번호가 맞지 않습니다."; inp.select(); return; }
-        S.key = inp.value; try { sessionStorage.setItem("tkey", S.key); } catch (e) {}
+        if (!r) { m.textContent = "비밀번호가 맞지 않습니다."; inp.select(); return; }
+        // 새 서버는 로그인 토큰(문자열)을 주고, 마이그레이션 전 서버는 true만 준다
+        S.key = typeof r === "string" ? r : inp.value; try { sessionStorage.setItem("tkey", S.key); } catch (e) {}
         start();
-      }).catch(function () { b.disabled = false; m.textContent = "서버에 연결하지 못했습니다."; });
+      }).catch(function (err) {
+        b.disabled = false;
+        m.textContent = err && /locked/.test(err.message || "") ? "비밀번호를 여러 번 틀려서 10분 동안 로그인이 막혔습니다." : "서버에 연결하지 못했습니다.";
+      });
     });
     app.appendChild(box);
     inp.focus();
   }
 
   // ---------- 불러오기 ----------
+  // 요청마다 번호를 붙여, 늦게 도착한 옛 응답(기간을 바꾸기 전 등)이 새 화면을 덮지 않게 한다
+  var pollSeq = 0, appliedSeq = 0;
   function poll() {
-    var sc = since();
+    var seq = ++pollSeq;
+    var sc = since(), period = S.period;
     var jobs = [rpc("teacher_overview", { p_key: S.key, p_since: sc })];
     var sel = S.sel;
     if (sel) {
@@ -255,10 +262,13 @@ tr.stu[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--pe
       jobs.push(rpc("teacher_history", { p_key: S.key, p_code: sel, p_since: sc }));
     }
     return Promise.all(jobs).then(function (r) {
+      if (seq < appliedSeq || period !== S.period) return;
+      appliedSeq = seq;
       S.data = r[0]; S.lastAt = new Date();
       if (sel && sel === S.sel) { S.detail = r[1]; S.history = r[2]; }
       S.live = "on"; draw();
     }).catch(function (e) {
+      if (seq < appliedSeq) return;
       if (e && e.code === "28000") { stop(); S.key = null; try { sessionStorage.removeItem("tkey"); } catch (x) {} drawLogin("비밀번호가 바뀌었거나 맞지 않습니다."); return; }
       S.live = "err"; drawLive();
     });
