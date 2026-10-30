@@ -863,8 +863,10 @@ aside { position: sticky; top: 52px; align-self: start; max-height: calc(100vh -
         }
         return lines[li++];
       },
-      execLimit: limitMs,
-      yieldLimit: 30 // 30ms마다 브라우저에 차례를 넘겨, 무한 반복 중에도 화면이 멈추지 않게 한다
+      execLimit: limitMs
+      // yieldLimit은 쓰지 않는다. Skulpt 1.2.0은 함수 호출 도중에 차례를 넘기면 그 함수의 결과와
+      // 이후 실행을 잃어버린다(예: x = f() 뒤에 'x is not defined'). 그래서 오래 걸리는 정답이 오답이 됐다.
+      // 무한 반복 중 화면 멈춤은 케이스마다 최대 2초로 끝나므로, 정확한 채점을 우선한다.
     });
     return Sk.misceval.asyncToPromise(function () {
       return Sk.importMainWithBody("<학생코드>", false, code, true);
