@@ -309,6 +309,11 @@ table.tests td.n { font-variant-numeric: tabular-nums; color: var(--muted); widt
 /* 주제별 접기 + 목록만 따로 스크롤 */
 aside { position: sticky; top: 52px; align-self: start; max-height: calc(100vh - 64px); overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
 .ahead { display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px; }
+.ltabs { display: flex; margin: 0 0 10px; border-bottom: 1px solid var(--line); }
+.ltabs button { flex: 1; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 5px 4px 6px; font-size: 0.8rem; color: var(--muted); cursor: pointer; }
+.ltabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--pen); font-weight: 500; }
+.plist .grp.empty .gbtn { cursor: default; opacity: 0.55; }
+.plist .grp.empty .gbtn .caret { visibility: hidden; }
 .ahead h3 { margin: 0 !important; }
 .ahead .allbtn { margin-left: auto; background: none; border: 0; padding: 0; color: var(--muted); font-size: 0.75rem; text-decoration: underline; cursor: pointer; }
 .plist .grp { padding: 10px 0 0 !important; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
@@ -708,6 +713,10 @@ aside { position: sticky; top: 52px; align-self: start; max-height: calc(100vh -
     setTimeout(function () { var b = box.querySelector('[data-a="yes"]'); if (b) b.focus(); }, 0);
     return box;
   }
+  // 수업 단원: 문제의 unit 값. 목록의 '수업 단원별' 보기와 문제 관리의 단원 선택에 쓴다.
+  var UNITS = ["순차구조", "선택구조", "반복구조 for", "반복구조 while", "정렬", "탐색", "그래프 탐색", "연결리스트", "스택", "큐", "트리", "그래프"];
+  var UNIT_OTHER = "그 밖";
+  function unitOf(p) { var u = (p && p.unit || "").trim(); return UNITS.indexOf(u) >= 0 ? u : UNIT_OTHER; }
   var LEVELS = ["", "매우 쉬움", "쉬움", "보통", "어려움", "매우 어려움"];
   var LEVEL_NOTE = { 1: "처음 배우는 사람을 위한 문제. 설명에 나온 코드 한두 줄이면 풀린다.", 2: "기본 문법을 익히는 문제.", 3: "조건문과 반복문을 섞어 쓰는 문제.",
     4: "알고리즘을 직접 구현하는 심화 문제. 남는 시간에 도전해 보자.", 5: "여러 개념을 엮어야 하는 도전 문제. 남는 시간에 도전해 보자." };
@@ -1083,53 +1092,68 @@ aside { position: sticky; top: 52px; align-self: start; max-height: calc(100vh -
       fbox.appendChild(fb);
     });
     if (ui.lvFilter && LEVEL_NOTE[ui.lvFilter]) aside.insertBefore(h('<p class="lvnote">' + esc(LEVEL_NOTE[ui.lvFilter]) + '</p>'), ul);
-    // 주제별 접기: 처음에는 지금 문제의 주제만 열고, 고른 상태는 브라우저에 기억
+    // 보기 두 가지: 주제별(문제의 group) / 단원별(수업 단원 unit). 고른 보기는 브라우저에 기억
+    var view = ui.listView || (ui.listView = store("listview") === "unit" ? "unit" : "group");
+    var tabs = h('<div class="ltabs" role="tablist" aria-label="문제 목록 보기"><button type="button" role="tab" data-v="group">주제별</button><button type="button" role="tab" data-v="unit">수업 단원별</button></div>');
+    tabs.querySelectorAll("button").forEach(function (b) {
+      b.setAttribute("aria-selected", String(b.dataset.v === view));
+      b.addEventListener("click", function () { if (ui.listView === b.dataset.v) return; ui.listView = b.dataset.v; store("listview", ui.listView); ui.autoOpened = null; render(); });
+    });
+    aside.insertBefore(tabs, fbox);
+    // 접기: 처음에는 지금 문제가 든 묶음만 열고, 고른 상태는 브라우저에 기억 (단원 묶음은 '단원:' 접두어로 따로 기억)
     if (!ui.openGroups) { try { ui.openGroups = JSON.parse(store("opengroups") || "null"); } catch (e) { ui.openGroups = null; } }
     if (!ui.openGroups) ui.openGroups = {};
+    function secOf(p) { return view === "unit" ? unitOf(p) : (p.group || "").trim(); }
+    function keyOf(name) { return view === "unit" ? "단원:" + name : name; }
     var cp0 = cur();
-    if (cp0 && ui.autoOpened !== cp0.id) { ui.autoOpened = cp0.id; var g0 = (cp0.group || "").trim(); if (g0) { ui.openGroups[g0] = true; ui.scrollToCur = true; } }
+    if (cp0 && ui.autoOpened !== cp0.id + "|" + view) { ui.autoOpened = cp0.id + "|" + view; var g0 = secOf(cp0); if (g0) { ui.openGroups[keyOf(g0)] = true; ui.scrollToCur = true; } }
     function saveGroups() { store("opengroups", JSON.stringify(ui.openGroups)); }
-    var groupNames = [], gStat = {};
-    state.problems.forEach(function (p) {
-      if (ui.lvFilter && lvOf(p) !== ui.lvFilter) return;
-      var g = (p.group || "").trim(); if (!g) return;
-      if (!gStat[g]) { gStat[g] = { n: 0, ok: 0 }; groupNames.push(g); }
-      gStat[g].n++; if (ui.passed[p.id]) gStat[g].ok++;
-    });
-    var allOpen = groupNames.every(function (g) { return ui.openGroups[g]; });
-    var allBtn = aside.querySelector(".allbtn");
-    allBtn.textContent = allOpen ? "모두 접기" : "모두 펼치기";
-    allBtn.hidden = !groupNames.length;
-    allBtn.addEventListener("click", function () { groupNames.forEach(function (g) { ui.openGroups[g] = !allOpen; }); saveGroups(); render(); });
-    var lastGroup = null;
+    // 묶음 만들기: 주제별은 처음 나온 순서, 단원별은 정해진 단원 순서. 묶음 안은 문제 번호 순서
+    var groupNames = [], gStat = {}, members = {};
+    if (view === "unit") UNITS.concat([UNIT_OTHER]).forEach(function (u) { groupNames.push(u); gStat[u] = { n: 0, ok: 0 }; members[u] = []; });
     state.problems.forEach(function (p, i) {
       if (ui.lvFilter && lvOf(p) !== ui.lvFilter) return;
-      var g = (p.group || "").trim();
-      if (g !== lastGroup) {
-        lastGroup = g;
-        if (g) {
-          var open = !!ui.openGroups[g], st = gStat[g];
-          var showOk = ui.mode === "student" && ui.code;
-          var gli = h('<li class="grp"><button type="button" class="gbtn" aria-expanded="' + open + '"><span class="caret" aria-hidden="true">›</span><span class="gname"></span>' +
-            '<span class="gcnt' + (showOk && st.ok === st.n ? ' full' : '') + '">' + (showOk ? (st.ok === st.n ? '다 맞힘' : st.ok + ' / ' + st.n) : st.n + '문제') + '</span></button></li>');
-          gli.querySelector(".gname").textContent = g;
-          gli.querySelector(".gbtn").addEventListener("click", function () { ui.openGroups[g] = !ui.openGroups[g]; saveGroups(); render(); });
-          ul.appendChild(gli);
-        }
+      var g = secOf(p);
+      if (!gStat[g]) { gStat[g] = { n: 0, ok: 0 }; members[g] = []; groupNames.push(g); }
+      gStat[g].n++; if (ui.passed[p.id]) gStat[g].ok++;
+      members[g].push(i);
+    });
+    // 단원별에서 '그 밖'이 비어 있으면 숨긴다. 다른 단원은 비어 있어도 보여 줘서 어느 단원이 비었는지 알 수 있게 한다.
+    if (view === "unit" && !gStat[UNIT_OTHER].n) groupNames = groupNames.filter(function (g) { return g !== UNIT_OTHER; });
+    var named = groupNames.filter(function (g) { return g && gStat[g].n; });
+    var allOpen = named.every(function (g) { return ui.openGroups[keyOf(g)]; });
+    var allBtn = aside.querySelector(".allbtn");
+    allBtn.textContent = allOpen ? "모두 접기" : "모두 펼치기";
+    allBtn.hidden = !named.length;
+    allBtn.addEventListener("click", function () { named.forEach(function (g) { ui.openGroups[keyOf(g)] = !allOpen; }); saveGroups(); render(); });
+    var showOk = ui.mode === "student" && ui.code;
+    groupNames.forEach(function (g) {
+      var st = gStat[g], k = keyOf(g);
+      if (g) {
+        var open = !!ui.openGroups[k] && st.n > 0;
+        var label = !st.n ? (view === "unit" && !ui.lvFilter ? "아직 없음" : "0문제") : showOk ? (st.ok === st.n ? '다 맞힘' : st.ok + ' / ' + st.n) : st.n + '문제';
+        var gli = h('<li class="grp' + (st.n ? '' : ' empty') + '"><button type="button" class="gbtn" aria-expanded="' + open + '"' + (st.n ? '' : ' disabled') + '><span class="caret" aria-hidden="true">›</span><span class="gname"></span>' +
+          '<span class="gcnt' + (showOk && st.n && st.ok === st.n ? ' full' : '') + '">' + label + '</span></button></li>');
+        gli.querySelector(".gname").textContent = g;
+        gli.querySelector(".gbtn").addEventListener("click", function () { ui.openGroups[k] = !ui.openGroups[k]; saveGroups(); render(); });
+        ul.appendChild(gli);
+        if (!open) return;
       }
-      if (g && !ui.openGroups[g]) return;
-      var li = document.createElement("li");
-      var b = h('<button type="button"><span class="num">' + String(i + 1).padStart(2, "0") + '</span><span class="ttl">' + esc(p.title || "(제목 없음)") + '</span>' + lvBars(lvOf(p)) + '<span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">, 난이도 ' + LEVELS[lvOf(p)] + '</span></button>');
-      if (ui.passed[p.id]) b.appendChild(h('<span class="done" aria-label="모두 통과">맞음</span>'));
-      b.setAttribute("aria-current", String(p.id === ui.current));
-      b.addEventListener("click", function () { ui.current = p.id; store("lastpid", p.id); render(); });
-      li.appendChild(b); ul.appendChild(li);
+      members[g].forEach(function (i) {
+        var p = state.problems[i];
+        var li = document.createElement("li");
+        var b = h('<button type="button"><span class="num">' + String(i + 1).padStart(2, "0") + '</span><span class="ttl">' + esc(p.title || "(제목 없음)") + '</span>' + lvBars(lvOf(p)) + '<span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">, 난이도 ' + LEVELS[lvOf(p)] + '</span></button>');
+        if (ui.passed[p.id]) b.appendChild(h('<span class="done" aria-label="모두 통과">맞음</span>'));
+        b.setAttribute("aria-current", String(p.id === ui.current));
+        b.addEventListener("click", function () { ui.current = p.id; store("lastpid", p.id); render(); });
+        li.appendChild(b); ul.appendChild(li);
+      });
     });
     if (ui.mode === "teacher") {
       var add = h('<button type="button" class="btn small addbtn">새 문제 추가</button>');
       add.addEventListener("click", function () {
         var cp = cur();
-        var p = { id: "p" + Date.now().toString(36), group: cp ? (cp.group || "") : "", level: cp ? lvOf(cp) : 3, title: "새 문제", kind: "stdin", funcName: "", ignoreWs: false, desc: "", starter: "", tests: [{ input: "", expected: "", hidden: false }] };
+        var p = { id: "p" + Date.now().toString(36), group: cp ? (cp.group || "") : "", unit: cp && UNITS.indexOf(cp.unit) >= 0 ? cp.unit : undefined, level: cp ? lvOf(cp) : 3, title: "새 문제", kind: "stdin", funcName: "", ignoreWs: false, desc: "", starter: "", tests: [{ input: "", expected: "", hidden: false }] };
         state.problems.push(p); ui.current = p.id; markDirty(); render();
       });
       aside.appendChild(add);
@@ -1427,11 +1451,14 @@ aside { position: sticky; top: 52px; align-self: start; max-height: calc(100vh -
     var f1 = h('<div class="row2"><div class="field"><label for="f-title">제목</label><input id="f-title"></div>' +
       '<div class="field"><label for="f-group">분류 <span class="sub">같은 분류끼리 목록에 묶입니다</span></label><input id="f-group" list="group-list">' +
       '<datalist id="group-list">' + state.problems.map(function (x) { return (x.group || "").trim(); }).filter(function (g, k, arr) { return g && arr.indexOf(g) === k; }).map(function (g) { return '<option value="' + esc(g) + '"></option>'; }).join("") + '</datalist></div>' +
+      '<div class="field"><label for="f-unit">수업 단원 <span class="sub">\'수업 단원별\' 목록에 쓰입니다</span></label><select id="f-unit"><option value="">그 밖 (정하지 않음)</option>' + UNITS.map(function (u) { return '<option value="' + esc(u) + '">' + esc(u) + '</option>'; }).join("") + '</select></div>' +
       '<div class="field"><label for="f-level">난이도</label><select id="f-level">' + [1, 2, 3, 4, 5].map(function (l) { return '<option value="' + l + '">' + l + ' ' + LEVELS[l] + '</option>'; }).join("") + '</select></div>' +
       '<div class="field"><label for="f-kind">채점 방식</label><select id="f-kind"><option value="stdin">입력 → 출력 비교 (input / print)</option><option value="function">함수 반환값 비교</option></select></div></div>');
     f1.querySelector("#f-title").value = p.title;
     f1.querySelector("#f-kind").value = p.kind;
     f1.querySelector("#f-level").value = String(lvOf(p));
+    f1.querySelector("#f-unit").value = UNITS.indexOf(p.unit) >= 0 ? p.unit : "";
+    f1.querySelector("#f-unit").addEventListener("change", function (e) { if (e.target.value) p.unit = e.target.value; else delete p.unit; mark(); render(); });
     f1.querySelector("#f-level").addEventListener("change", function (e) { p.level = parseInt(e.target.value, 10); mark(); render(); });
     f1.querySelector("#f-title").addEventListener("input", function (e) { p.title = e.target.value; mark(); });
     f1.querySelector("#f-group").value = p.group || "";
